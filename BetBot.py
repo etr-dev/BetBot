@@ -6,6 +6,7 @@ import requests #for api requests
 import os
 import Database
 import locale
+from datetime import date, datetime
 locale.setlocale(locale.LC_ALL, 'en_US')
 bot = ComponentsBot(">")
 """
@@ -17,6 +18,13 @@ DiscordComponents(bot)
 testing = True
 apiBaseURL = 'http://localhost:3000'
 
+
+def monthAbreviationToNumber(abr):
+  months = ['ja','f','mar','ap','may','jun','jul','au','s','o','n','d']
+  for i in range(12):
+    if abr.lower().startswith(months[i]):
+      return i+1
+  print('ERROR: DATE NOT DETECTED')
 
 '''VERIFICATION'''
 async def verificationChecks(response, choice, wager=0):
@@ -45,6 +53,16 @@ async def isFightCompleted(choice):
     return True
 
 '''HELPER FUNCTIONS'''
+def logUserActions(ctx, action, display=True):
+  if display:
+    print(ctx.message.author.name + '#' + ctx.message.author.discriminator + action)
+
+def ufcDateFormatter(ufcDate):
+  ufcDate = ufcDate.split(',')[1].split('/')[0].strip().split(' ')
+  #newDate = str(datetime.now().year) + '-' + str(monthAbreviationToNumber(ufcDate[0])) + '-' + ufcDate[1]
+  newDate = str(monthAbreviationToNumber(ufcDate[0])) + '-' + ufcDate[1]
+  return newDate
+
 def listToSelectOptions(list):
     selectList = []
     count = 1
@@ -128,7 +146,8 @@ def getFightTitleList(response):
 async def getUpcomingFights():
   return requests.get(apiBaseURL + "/api/v1/nextEvent").json()
 
-
+async def getFightByURL(url):
+  return requests.get(apiBaseURL + "/api/v1/eventByLink?url=" + url).json()
 
 
 '''MENU HELPERS'''
@@ -175,7 +194,7 @@ def wagersEmbed(ctx,wagers):
       wager['odds'] = '+' + str(wager['odds'])
 
     embed.add_field(name=wager['fightTitle'], value='Your Pick: ' + wager['fighterChoice'] + '\nOdds: ' + str(wager['odds']))
-    embed.add_field(name='\u200B', value='Your Bet: ' + str(wager['wager']) + '\nPayout: ' + str(calculatePayout(wager['wager'], str(wager['odds']))), inline=True)
+    embed.add_field(name='\u200B', value='Your Bet: ' + str(wager['wager']) + '\nPayout: ' + str(wager['payout']), inline=True)
     embed.add_field(name='\u200B', value='\u200B')
   return embed
 
@@ -216,11 +235,15 @@ async def betMenu(ctx, wager):
       response['fights'][choice][choice2]['Name'],
       response['url'],
       wager,
-      response['fights'][choice][interaction2.custom_id]['Odds']
+      response['fights'][choice][interaction2.custom_id]['Odds'],
+      ufcDateFormatter(response['date']),
+      choice2,
+      int(calculatePayout(wager,response['fights'][choice][interaction2.custom_id]['Odds']))
       )
 
     #Remove wager from user's bank
     Database.updateUserBalance(ctx.message.author.id, -wager)
+    logUserActions(ctx,' placed a wager.')
     
 async def helpMenu(ctx):
   msg = await ctx.send(embed=betbotMenuEmbed(), components=[[Button(label='Upcoming Event', custom_id="Upcoming Event", style=3),
@@ -239,31 +262,50 @@ async def helpMenu(ctx):
     await interaction.send(embeds=embedAllFights(await getUpcomingFights()))
     await msg.delete()  #throws an error if user deletes it before bot deletes it
     await ctx.message.delete()
+    logUserActions(ctx,' viewed upcoming events.')
     return
   elif interaction.custom_id == 'Balance':
     await interaction.send(embed=balanceEmbed(ctx))
     await msg.delete()  #throws an error if user deletes it before bot deletes it
     await ctx.message.delete()
+    logUserActions(ctx,' checked their balance.')
     return
   elif interaction.custom_id == 'My Wagers':
     wagers = Database.getWagersByDUID(ctx.message.author.id)
-    print(wagers)
     await interaction.send(embed=wagersEmbed(ctx,wagers))
     await msg.delete()  #throws an error if user deletes it before bot deletes it
     await ctx.message.delete()
+    logUserActions(ctx,' viewed their wagers.')
     return
   await interaction.send(content=interaction.custom_id)  
 
 
 '''BOT COMMMANDS'''
-@tasks.loop(minutes=10)
-async def test():
-  print('hi')
+@tasks.loop(minutes=30)
+async def checkForWinners():
+  #if date.today().weekday() is not 5 or date.today().weekday() is not 6:  #if it is not saturday or sunday
+  #  return
+  #print(str(date.today())[5:])
+  wagers=Database.getWagersByFightDate('10-16')
+  if wagers:
+    url = wagers[0]['link']
+    res = await getFightByURL(url)
+    for wager in wagers:
+      outcome = res['fights'][wager['fightTitle']][wager['fighterColor']]['Outcome'].lower()
+      if outcome == 'win':
+        Database.updateUserBalance(wager['dUID'],wager['payout'])
+      elif outcome == 'loss':
+        print('he lose')
+      elif outcome == '':
+        print('nothing yet' + outcome)
+      else:   #draw or no contest
+        Database.updateUserBalance(wager['dUID'],wager['wager'])
+  #get all fights for today
 
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user}!")
-    test.start()
+    checkForWinners.start()
 
 @bot.command()
 async def bet(ctx):
@@ -276,7 +318,7 @@ async def bet(ctx):
     await ctx.send(content='When placing a bet make sure you include a space with your wager afterwards:\n >bet 420')
     return
   
-  if wager > 0 and wager <= await userBankAccount():
+  if wager > 0 and wager <= Database.getUserBalance(ctx.message.author.id):
     await betMenu(ctx, int(wager))
   else:
     await ctx.send(content='Make sure you are wagering more than 0 and less than or equal to the amount in your bank')

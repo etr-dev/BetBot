@@ -76,9 +76,9 @@ def getUserByDiscordUID(dUID):  #returns dictionary of row with discord uid
 
 '''WAGER FUNCTIONS'''
 #places a wager
-def placeWager(dUID, fightTitle, fighterChoice,link,wager,odds):
+def placeWager(dUID, fightTitle, fighterChoice,link,wager,odds,fightDate,fighterColor,payout):
     global db
-    db.cursor().execute('INSERT INTO Wagers (dUID,fightTitle,fighterChoice,link,wager,odds,wagerDate) VALUES (%s,%s,%s,%s,%s,%s,%s)', (dUID,fightTitle,fighterChoice,link,wager,odds,datetime.now()))
+    db.cursor().execute('INSERT INTO Wagers (dUID,fightTitle,fighterChoice,link,wager,odds,wagerDate,fightDate,fighterColor,payout) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', (dUID,fightTitle,fighterChoice,link,wager,odds,datetime.now(), fightDate,fighterColor,payout))
     db.commit()
 
 #returns all wagers made by a single user
@@ -86,6 +86,13 @@ def getWagersByDUID(dUID):
     global db
     cursor = db.cursor(dictionary=True)
     cursor.execute('SELECT * FROM Wagers WHERE dUID = %s' % dUID)
+    return cursor.fetchall()
+
+#returns all wagers made by a single user
+def getWagersByFightDate(fDate):
+    global db
+    cursor = db.cursor(dictionary=True)
+    cursor.execute('SELECT * FROM Wagers WHERE fightDate = \'%s\'' % fDate)
     return cursor.fetchall()
 
 #returns a single wager by the wagerId
@@ -134,11 +141,6 @@ def removeWagersByDUID(dUID):
 #print(getUserByDiscordUID(''))
 #initDB()
 #addNewUser('TEST','')
-
-
-
-
-
 
 
 
