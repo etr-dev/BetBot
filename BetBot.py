@@ -1,8 +1,12 @@
 from discord import Client,Embed, Color
 from discord.ext.commands.core import check
+from discord.ext import tasks
 from discord_components import Button, Select, SelectOption, ComponentsBot
 import requests #for api requests
 import os
+import Database
+import locale
+locale.setlocale(locale.LC_ALL, 'en_US')
 bot = ComponentsBot(">")
 """
 or you can just override the methods yourself
@@ -15,13 +19,19 @@ apiBaseURL = 'http://localhost:3000'
 
 
 '''VERIFICATION'''
-def verificationChecks(response,choice):
-  if testing is True:
+async def verificationChecks(response, choice, wager=0):
+  if testing:
     return ''
   if response['fights'][choice]['Red']['Odds']=='-' and response['fights'][choice]['Blue']['Odds']=='-':
     return 'These fighters do not have odds yet, check back later to place bests.'
   elif response['fights'][choice]['Red']['Outcome'] != '' or response['fights'][choice]['Blue']['Outcome']=='':
     return 'This fight has already happened you cannot bet on it.'
+  elif await isFightLive(response,choice):
+    return 'This fight is currently live, it is too late to bet'
+  elif await isFightCompleted(choice):
+    return 'This fight has already been completed, it is too late to bet'
+  elif wager> await userBankAccount():
+    return 'You wagered more than you own buckaroo'
 
 async def isFightLive(response,fight):
   res = requests.get(apiBaseURL + "/api/v1/liveEventStatus?url=" + response['url']).json()
@@ -66,6 +76,10 @@ async def editInteractionMessage(interaction, contentObj):  #contentObj needs to
   token = interaction.interaction_token
   requests.patch(f'https://discord.com/api/v8/webhooks/{appId}/{token}/messages/@original',contentObj)
 
+async def deleteInteractionMessage(interaction):
+  appId = os.getenv('APPID')
+  token = interaction.interaction_token
+  requests.patch(f'https://discord.com/api/v8/webhooks/{appId}/{token}/messages/@original',{'method':'DELETE'})
 
 '''USER FUNCTIONS'''
 async def userBankAccount():
@@ -114,35 +128,64 @@ def getFightTitleList(response):
 async def getUpcomingFights():
   return requests.get(apiBaseURL + "/api/v1/nextEvent").json()
 
+
+
+
+'''MENU HELPERS'''
+async def initBetMenu(ctx):
+  tempMsg = await ctx.send(content = 'Retrieving data please wait...')
+  response = await getUpcomingFights()
+  await tempMsg.delete()
+  embedList = embedAllFights(response)
+  #await ctx.send(embedList[0])
+  if len(embedList) > 1:
+      await ctx.send(embed=embedList[0])
+  await ctx.send(
+      embed=embedList[-1],
+      components=[
+          Select(
+              placeholder="Select something!",
+              options= listToSelectOptions(getFightTitleList(response)),
+              custom_id="betMenu",
+          )
+      ],
+  )
+  return response
+
+def betbotMenuEmbed():
+  embed=Embed(color = Color.green(), title="by idgnfs", url="https://www.instagram.com/idgnfs/", description="I am BetBot a discord bot that allows you to bet on upcoming UFC fights. I can keep track of your betting balance and if you go into the hole I offer ways you can make money to start your addiction of betting up again.")
+  embed.set_author(name="BetBot Account Menu")
+  embed.set_thumbnail(url="https://cdn.discordapp.com/avatars/895536293356924979/fc5defd0df0442bd4a2326e552c11899.png?size=32")
+  embed.set_footer(text="click a button below")
+  return embed
+
+def balanceEmbed(ctx):
+  #title= ctx.message.author.name + '#' + ctx.message.author.discriminator +" Balance:"
+  print(Database.getUserBalance(ctx.message.author.id))
+  embed=Embed(color=Color.green(), title= ctx.message.author.name + '#' + ctx.message.author.discriminator +" Balance:", description=locale.currency(Database.getUserBalance(ctx.message.author.id), grouping=True))
+  embed.set_author(name="BetBot", icon_url="https://cdn.discordapp.com/avatars/895536293356924979/fc5defd0df0442bd4a2326e552c11899.png?size=32")
+  return embed
+
+def wagersEmbed(ctx,wagers):
+  #title= ctx.message.author.name + '#' + ctx.message.author.discriminator +" Balance:"
+  embed=Embed(color=Color.green(), title= ctx.message.author.name + '#' + ctx.message.author.discriminator +" Wagers:")
+  embed.set_author(name="BetBot", icon_url="https://cdn.discordapp.com/avatars/895536293356924979/fc5defd0df0442bd4a2326e552c11899.png?size=32")
+  for wager in wagers:
+    if wager['odds'] > 0:
+      wager['odds'] = '+' + str(wager['odds'])
+
+    embed.add_field(name=wager['fightTitle'], value='Your Pick: ' + wager['fighterChoice'] + '\nOdds: ' + str(wager['odds']))
+    embed.add_field(name='\u200B', value='Your Bet: ' + str(wager['wager']) + '\nPayout: ' + str(calculatePayout(wager['wager'], str(wager['odds']))), inline=True)
+    embed.add_field(name='\u200B', value='\u200B')
+  return embed
+
 '''MENUS'''
 async def betMenu(ctx, wager):
-    tempMsg = await ctx.send(content = 'Retrieving data please wait...')
-    response = await getUpcomingFights()
-    await tempMsg.delete()
-    embedList = embedAllFights(response)
-    #await ctx.send(embedList[0])
-    if len(embedList) > 1:
-        await ctx.send(embed=embedList[0])
-    await ctx.send(
-        embed=embedList[-1],
-        components=[
-            Select(
-                placeholder="Select something!",
-                options= listToSelectOptions(getFightTitleList(response)),
-                custom_id="betMenu",
-            )
-        ],
-    )
+    response = await initBetMenu(ctx) #start up the betmenu and return the api response
 
     #Selection box response for the fight the user wants to choose
     interaction = await bot.wait_for("select_option", check=lambda inter: inter.custom_id == "betMenu" and inter.user == ctx.author)
-    choice = interaction.values[0]
-
-    #Verify that you can bet on the fight
-    verMsg = verificationChecks(response,choice)
-    if verMsg != '':
-      await ctx.send(content=verMsg)
-      return
+    choice = interaction.values[0]  #choice is the selected fight i.e. 'Covington vs Usman'
 
     #Let user choose the fighter they want to bet on
     choiceEmbed = chooseFighter(choice, response)
@@ -152,48 +195,81 @@ async def betMenu(ctx, wager):
     interaction2 = await bot.wait_for(
         "button_click", check=lambda inter: inter.custom_id == "Red"  or inter.custom_id == "Blue" or inter.custom_id == "Cancel"
     )
-
+    choice2 = interaction2.custom_id
     #cancel wager
-    if interaction2.custom_id == 'Cancel':
+    if choice2 == 'Cancel':
       await interaction2.send(content='🚫 You canceled your wager')    
       return
     
-    #print(interaction2.token)
-    #message has to send before scraping
     await interaction2.send(content='Your wager is being confirmed please wait...')
-    #print(msg)
-    if await isFightLive(response,choice) or await isFightCompleted(choice) or wager > await userBankAccount():
-      await editInteractionMessage(interaction2,{'content' : 'Your wager could not be placed.'})
+    verMsg = await verificationChecks(response,choice)
+    if verMsg != '':
+      await editInteractionMessage(interaction2,{'content' : verMsg})
       return
     
     await editInteractionMessage(interaction2,{'content' : 'Your wager has been placed!'})
     #TODO:
+    #duid, fightTitle, fighterChoice, link, wager, odds
+    Database.placeWager(
+      ctx.message.author.id,
+      choice,
+      response['fights'][choice][choice2]['Name'],
+      response['url'],
+      wager,
+      response['fights'][choice][interaction2.custom_id]['Odds']
+      )
 
-    #Store users choice and wager in database
     #Remove wager from user's bank
+    Database.updateUserBalance(ctx.message.author.id, -wager)
     
-
-
-
+async def helpMenu(ctx):
+  msg = await ctx.send(embed=betbotMenuEmbed(), components=[[Button(label='Upcoming Event', custom_id="Upcoming Event", style=3),
+                                                          Button(label='Balance', custom_id="Balance", style=3),
+                                                          Button(label='My Wagers', custom_id="My Wagers", style=3),
+                                                          Button(label='Cancel', custom_id="Cancel", style=2, emoji='🚫')]])
+  interaction = await bot.wait_for(
+        "button_click", check=lambda inter: (inter.custom_id == "Upcoming Event" or inter.custom_id == "Balance"  or inter.custom_id == "My Wagers" or inter.custom_id == "Cancel") and inter.user == ctx.author
+    ) 
+  #cancel wager
+  if interaction.custom_id == 'Cancel':
+    await msg.delete()  #throws an error if user deletes it before bot deletes it
+    await ctx.message.delete()
+    return
+  elif interaction.custom_id == 'Upcoming Event':
+    await interaction.send(embeds=embedAllFights(await getUpcomingFights()))
+    await msg.delete()  #throws an error if user deletes it before bot deletes it
+    await ctx.message.delete()
+    return
+  elif interaction.custom_id == 'Balance':
+    await interaction.send(embed=balanceEmbed(ctx))
+    await msg.delete()  #throws an error if user deletes it before bot deletes it
+    await ctx.message.delete()
+    return
+  elif interaction.custom_id == 'My Wagers':
+    wagers = Database.getWagersByDUID(ctx.message.author.id)
+    print(wagers)
+    await interaction.send(embed=wagersEmbed(ctx,wagers))
+    await msg.delete()  #throws an error if user deletes it before bot deletes it
+    await ctx.message.delete()
+    return
+  await interaction.send(content=interaction.custom_id)  
 
 
 '''BOT COMMMANDS'''
+@tasks.loop(minutes=10)
+async def test():
+  print('hi')
+
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user}!")
-
-
-@bot.command()
-async def button(ctx):
-    await ctx.send("Buttons!", components=[Button(label="Button", custom_id="button1")])
-    interaction = await bot.wait_for(
-        "button_click", check=lambda inter: inter.custom_id == "button1"
-    )
-    await interaction.send(content="Button Clicked")
-
+    test.start()
 
 @bot.command()
 async def bet(ctx):
+  if not Database.getUserByDiscordUID(ctx.message.author.id):
+    Database.addNewUser(ctx.message.author.name + '#' + ctx.message.author.discriminator,ctx.message.author.id)
+    await ctx.send('Thank you, '+ ctx.message.author.name +' , for using BetBot! I have created an account for you. Use >Menu to check your balance, see upcoming fights, and more.')
   try:
     wager = int(ctx.message.content.split()[1])
   except:
@@ -204,6 +280,22 @@ async def bet(ctx):
     await betMenu(ctx, int(wager))
   else:
     await ctx.send(content='Make sure you are wagering more than 0 and less than or equal to the amount in your bank')
+
+@bot.command()
+async def menu(ctx):
+  if not Database.getUserByDiscordUID(ctx.message.author.id):
+    Database.addNewUser(ctx.message.author.name + '#' + ctx.message.author.discriminator,ctx.message.author.id)
+    await ctx.send('Thank you, '+ ctx.message.author.name +' , for using BetBot! I have created an account for you. Use >Menu to check your balance, see upcoming fights, and more.')
+  await helpMenu(ctx)
+  
+  #print(Database.getUserByDiscordUID(ctx.message.author.id))
+
+
+@bot.command()
+async def testing(ctx):
+  print(ctx.message.author.display_name)
+  print(ctx.message.author.discriminator)
+  print(ctx.message.author.name)
 
 
 bot.run(os.getenv('TOKEN'))
