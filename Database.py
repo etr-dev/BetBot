@@ -30,8 +30,8 @@ def initDB():
 
     mycursor = db.cursor()
     Q1 = mycursor.execute('CREATE TABLE Users (name VARCHAR(50), balance int UNSIGNED, dateCreated date, discordUID VARCHAR(50) PRIMARY KEY)')
-    Q2 = mycursor.execute('''CREATE TABLE Wagers (wagerId int AUTO_INCREMENT,dUID VARCHAR(50),fightTitle VARCHAR(50),fighterChoice VARCHAR(50),link VARCHAR(100),wager int UNSIGNED,odds smallint,wagerDate date,PRIMARY KEY (wagerId),FOREIGN KEY(dUID) REFERENCES Users(discordUID))''')
-
+    Q2 = mycursor.execute('''CREATE TABLE Wagers (wagerId int AUTO_INCREMENT,dUID VARCHAR(50),fightTitle VARCHAR(50),fighterChoice VARCHAR(50),link VARCHAR(100),wager int UNSIGNED,odds smallint,wagerDate date,fightDate VARCHAR(12),fighterColor VARCHAR(5),payout int UNSIGNED,PRIMARY KEY (wagerId),FOREIGN KEY(dUID) REFERENCES Users(discordUID))''')
+    Q3 = mycursor.execute('''CREATE TABLE WagerHistory (wagerId int AUTO_INCREMENT,dUID VARCHAR(50),fightTitle VARCHAR(50),fighterChoice VARCHAR(50),link VARCHAR(100),wager int UNSIGNED,odds smallint,wagerDate date,fightDate VARCHAR(12),fighterColor VARCHAR(5),payout int UNSIGNED,outcome VARCHAR(6),PRIMARY KEY (wagerId),FOREIGN KEY(dUID) REFERENCES Users(discordUID))''')
     mycursor.execute(Q1)
     mycursor.execute(Q2)
 
@@ -130,6 +130,12 @@ def removeWagersByDUID(dUID):
     db.commit()  
     return '[Database]: removed all wagers %s by dUID' % dUID
 
+def moveWagerToHistoryByID(wagerId,outcome):
+    global db
+    db.cursor().execute('INSERT INTO wagerhistory (wagerId, dUID, fightTitle, fighterChoice, link, wager, odds, wagerDate, fightDate, fighterColor, payout) SELECT * FROM wagers WHERE wagerId = %s' % wagerId) 
+    db.cursor().execute('DELETE FROM wagers WHERE wagerId = %s' % wagerId)
+    db.cursor().execute('UPDATE wagerhistory SET outcome = \'%s\' WHERE wagerId = %s' % (outcome, wagerId))
+    db.commit()  
 #addNewUser('TEST','')
 #for i in getUserByDiscordUID(''):
 #   print(i)
@@ -141,9 +147,6 @@ def removeWagersByDUID(dUID):
 #print(getUserByDiscordUID(''))
 #initDB()
 #addNewUser('TEST','')
-
-
-
 
 
 

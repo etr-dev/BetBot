@@ -38,8 +38,8 @@ async def verificationChecks(response, choice, wager=0):
     return 'This fight is currently live, it is too late to bet'
   elif await isFightCompleted(choice):
     return 'This fight has already been completed, it is too late to bet'
-  elif wager> await userBankAccount():
-    return 'You wagered more than you own buckaroo'
+  #elif wager> await userBankAccount():
+  #  return 'You wagered more than you own buckaroo'
 
 async def isFightLive(response,fight):
   res = requests.get(apiBaseURL + "/api/v1/liveEventStatus?url=" + response['url']).json()
@@ -98,10 +98,6 @@ async def deleteInteractionMessage(interaction):
   appId = os.getenv('APPID')
   token = interaction.interaction_token
   requests.patch(f'https://discord.com/api/v8/webhooks/{appId}/{token}/messages/@original',{'method':'DELETE'})
-
-'''USER FUNCTIONS'''
-async def userBankAccount():
-  return 500
 
 '''GET API INFO AND DISPLAY IT'''
 #embedAllFights(api response): Returns a discord Embed list of one or 2 embeds to be displayed
@@ -173,14 +169,14 @@ async def initBetMenu(ctx):
 
 def betbotMenuEmbed():
   embed=Embed(color = Color.green(), title="by idgnfs", url="https://www.instagram.com/idgnfs/", description="I am BetBot a discord bot that allows you to bet on upcoming UFC fights. I can keep track of your betting balance and if you go into the hole I offer ways you can make money to start your addiction of betting up again.")
-  embed.set_author(name="BetBot Account Menu")
+  embed.set_author(name="BetBot Account Menu", icon_url = 'https://cdn.discordapp.com/avatars/895536293356924979/fc5defd0df0442bd4a2326e552c11899.png?size=32')
   embed.set_thumbnail(url="https://cdn.discordapp.com/avatars/895536293356924979/fc5defd0df0442bd4a2326e552c11899.png?size=32")
   embed.set_footer(text="click a button below")
+  embed.set_thumbnail(url='https://cdn.discordapp.com/avatars/895536293356924979/fc5defd0df0442bd4a2326e552c11899.png?size=32')
   return embed
 
 def balanceEmbed(ctx):
   #title= ctx.message.author.name + '#' + ctx.message.author.discriminator +" Balance:"
-  print(Database.getUserBalance(ctx.message.author.id))
   embed=Embed(color=Color.green(), title= ctx.message.author.name + '#' + ctx.message.author.discriminator +" Balance:", description=locale.currency(Database.getUserBalance(ctx.message.author.id), grouping=True))
   embed.set_author(name="BetBot", icon_url="https://cdn.discordapp.com/avatars/895536293356924979/fc5defd0df0442bd4a2326e552c11899.png?size=32")
   return embed
@@ -225,8 +221,6 @@ async def betMenu(ctx, wager):
     if verMsg != '':
       await editInteractionMessage(interaction2,{'content' : verMsg})
       return
-    
-    await editInteractionMessage(interaction2,{'content' : 'Your wager has been placed!'})
     #TODO:
     #duid, fightTitle, fighterChoice, link, wager, odds
     Database.placeWager(
@@ -242,8 +236,12 @@ async def betMenu(ctx, wager):
       )
 
     #Remove wager from user's bank
-    Database.updateUserBalance(ctx.message.author.id, -wager)
-    logUserActions(ctx,' placed a wager.')
+    if Database.getUserBalance(ctx.message.author.id) >= wager:
+      Database.updateUserBalance(ctx.message.author.id, -wager)
+      await editInteractionMessage(interaction2,{'content' : 'Your wager has been placed!'})
+      logUserActions(ctx,' placed a wager.')
+    else:
+      await editInteractionMessage(interaction2,{'content' : 'You do not have enough money. Check your balance with >menu'})
     
 async def helpMenu(ctx):
   msg = await ctx.send(embed=betbotMenuEmbed(), components=[[Button(label='Upcoming Event', custom_id="Upcoming Event", style=3),
@@ -283,23 +281,31 @@ async def helpMenu(ctx):
 '''BOT COMMMANDS'''
 @tasks.loop(minutes=30)
 async def checkForWinners():
-  #if date.today().weekday() is not 5 or date.today().weekday() is not 6:  #if it is not saturday or sunday
-  #  return
+  if date.today().weekday() != 5 or date.today().weekday() != 6:  #if it is not saturday or sunday
+    return
   #print(str(date.today())[5:])
-  wagers=Database.getWagersByFightDate('10-16')
+  wagers=Database.getWagersByFightDate(str(date.today())[5:])
   if wagers:
+    print('\t\tChecking Wager')
     url = wagers[0]['link']
-    res = await getFightByURL(url)
+    try:
+      res = await getFightByURL(url)
+    except:
+      print('Error: in checkForWinners')
+      return
     for wager in wagers:
       outcome = res['fights'][wager['fightTitle']][wager['fighterColor']]['Outcome'].lower()
       if outcome == 'win':
         Database.updateUserBalance(wager['dUID'],wager['payout'])
+        Database.moveWagerToHistoryByID(wager['wagerId'],'win')
       elif outcome == 'loss':
         print('he lose')
+        Database.moveWagerToHistoryByID(wager['wagerId'], 'loss')
       elif outcome == '':
-        print('nothing yet' + outcome)
+        pass
       else:   #draw or no contest
         Database.updateUserBalance(wager['dUID'],wager['wager'])
+        Database.moveWagerToHistoryByID(wager['wagerId'], 'draw')
   #get all fights for today
 
 @bot.event
