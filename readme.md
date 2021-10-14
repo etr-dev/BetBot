@@ -76,7 +76,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+[![Product Name Screen Shot][product-screenshot]]()
 
 After searching the internet I was unable to find any free MMA/UFC APIs that displayed any betting odds, event details, etc. that were public. Any APIs that relayed this data was blocked behind extremely expensive paywalls meant to be bought by big companies. I wanted to make my own API to correct this issue.
 
@@ -228,4 +228,4 @@ Credits
 [license-url]: https://github.com/erobin27/BetBot/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/in/elijah-robinson98/
-[product-screenshot]: images/screenshot.png
+[product-screenshot]: images/Screenshot.png
