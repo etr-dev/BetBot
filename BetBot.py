@@ -1,4 +1,4 @@
-from discord import Client,Embed, Color
+from discord import Client,Embed, Color, File
 from discord.ext.commands.core import check
 from discord.ext import tasks
 from discord_components import Button, Select, SelectOption, ComponentsBot
@@ -244,7 +244,7 @@ async def betMenu(ctx, wager):
       await editInteractionMessage(interaction2,{'content' : 'You do not have enough money. Check your balance with >menu'})
     
 async def helpMenu(ctx):
-  msg = await ctx.send(embed=betbotMenuEmbed(), components=[[Button(label='Upcoming Event', custom_id="Upcoming Event", style=3),
+  msg = await ctx.send(file=File('images/botImages/Menu.png'), components=[[Button(label='Upcoming Event', custom_id="Upcoming Event", style=3),
                                                           Button(label='Balance', custom_id="Balance", style=3),
                                                           Button(label='My Wagers', custom_id="My Wagers", style=3),
                                                           Button(label='Cancel', custom_id="Cancel", style=2, emoji='🚫')]])
@@ -346,4 +346,4 @@ async def testing(ctx):
   print(ctx.message.author.name)
 
 
-bot.run(os.getenv('TOKEN'))
+bot.run(os.getenv('TOKENTEST'))
