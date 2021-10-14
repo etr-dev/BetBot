@@ -30,7 +30,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/erobin27/BetBot">
-    <img src="https://cdn.discordapp.com/avatars/895536293356924979/fc5defd0df0442bd4a2326e552c11899.png?size=32" alt="Logo" width="80" height="80">
+    <img src="/images/BetBotLogo.png" alt="Logo" width="80" height="80">
   </a>
 
   <h3 align="center">UFC Webscraping API</h3>
