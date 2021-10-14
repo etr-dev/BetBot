@@ -33,10 +33,10 @@
     <img src="/images/BetBotLogo.png" alt="Logo" width="80" height="80">
   </a>
 
-  <h3 align="center">UFC Webscraping API</h3>
+  <h3 align="center">BetBot</h3>
 
   <p align="center">
-    A webscraper that retrieves and sends data about upcoming UFC Events through a REST api!
+    A discord bot for betting on MMA with simulated money!
     <br />
     <a href="https://github.com/erobin27/BetBot"><strong>Explore the docs »</strong></a>
     <br />
@@ -76,16 +76,25 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]]()
+[![Product Name Screen Shot][product-screenshot][product-screenshot2]]()
 
-After searching the internet I was unable to find any free MMA/UFC APIs that displayed any betting odds, event details, etc. that were public. Any APIs that relayed this data was blocked behind extremely expensive paywalls meant to be bought by big companies. I wanted to make my own API to correct this issue.
+This is the very first discord sports betting bot created (That I was able to find)! This has not been done before due to the privitization of sports betting API's. I created my own UFC API `https://github.com/erobin27/UFC-API` that allows me to get data from the UFC website. I then present this data to the user through the discord bot. Users can place bets using their balance. User's balance, wagers, discord id, and past wagers are all stored in a mySQL database.
 
-Why is this project important:
-* It pulls data directly from the official UFC website dynamically so it will stay in service even if I stop updating it.
-* Plans to maybe host the API through my own server eventually
-* This is 100% free and can be ran on local machines at no cost :smile:
+What is special about this project?
+* Users are determined by their static discord UID so their account info is kept across any discord server
+* Makes use of the new discord components which are not officially released yet
+* Can place bets in real time and verify that the fights have not started/ended
 
-This is part of the backend for my Discord sports betting bot. You can view my repo `BetBot` to look more into that.
+I plan on continuing to build this project up. Currently the stack I am using is as follows.
+
+FrontEnd: Python
+  - Discord
+  - Discord Components
+  - requests
+API: Node.js
+  - Express
+  - Puppetteer
+Backend: mySQL
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -95,9 +104,10 @@ This is part of the backend for my Discord sports betting bot. You can view my r
 
 This section should list any major frameworks/libraries used to bootstrap your project. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
 
-* [Node.js](https://nodejs.org/en/)
-* [Expressjs](https://expressjs.com/)
-* [Puppeteer](https://github.com/puppeteer/puppeteer)
+* [Python](https://www.python.org/)
+* [mySQL](https://www.mysql.com/)
+* [Discord](https://discord.com/)
+* [My UFC API](https://github.com/erobin27/UFC-API/)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -106,11 +116,11 @@ This section should list any major frameworks/libraries used to bootstrap your p
 <!-- GETTING STARTED -->
 ## Getting Started
 
-To get started clone the repo to your local machine and begin installing it's dependencies. Since the node_modules folder is not included in the repo you will need to install the dependencies using node.
+To get started clone the repo to your local machine and begin installing it's dependencies. You will need to setup your discord token and database connection info in a `.env` file in the project directory.
 
 ### Prerequisites
 
-To run this app you will need to install nodejs
+To run this app you will need to install python, pip, and mySQL server
 
 ### Installation
 
@@ -118,14 +128,11 @@ To run this app you will need to install nodejs
    ```sh
    git clone https://github.com/erobin27/BetBot.git
    ```
-2. Install NPM packages
+2. Install python dependecies with pip (will add requirement file soon)
    ```sh
-   npm install
+   pip install ...
    ```
-3. run the file `index.js` with node
-   ```sh
-    node ./server/index.js
-   ```
+3. run the python file BetBot.py whilst UFC-API and mySQL database are running
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -134,9 +141,7 @@ To run this app you will need to install nodejs
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-I plan to use this API to create discord bots that can use the betting odds for UFC fights. This will be useful for sports discord servers, MMA servers, and for fun projects.
-
-_For more examples, please refer to the [Documentation](https://example.com)_
+This is a way for people to make the UFC fights more engaging and fun without the harmful effects of gambling with real world money. I intend to make BetBot very interactive with leaderboards, xp ranks, etc. The betting process is not without risk since user balance is stored and after losing your money you would have to earn more but this definitely beats going broke in the real world from betting.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -145,12 +150,12 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 <!-- ROADMAP -->
 ## Roadmap
 
-- [x] Dynamically return next UFC Event details
-- [x] Return all upcoming UFC Events
-- [] Get Winners of fights
-- [] Get Event by URL
-- [] API Key Generation
-- [] Host on dedicated server
+- [x] Allow users to place bets
+- [x] Check bets and award winners
+- [] list previous wagers and outcome
+- [] Add a way for users to earn money
+- [] Add a ranking/xp system
+- [] Add server leaderboards
 
 See the [open issues](https://github.com/erobin27/BetBot/issues) for a full list of proposed features (and known issues).
 
@@ -179,7 +184,7 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the GNU General Public License v3.0. See `LICENSE.txt` for more information.
+You are not allowed to use this source code.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -229,3 +234,4 @@ Credits
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/in/elijah-robinson98/
 [product-screenshot]: images/Screenshot.png
+[product-screenshot2]: images/Screenshot2.png
