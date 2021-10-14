@@ -89,12 +89,14 @@ What is special about this project?
 I plan on continuing to build this project up. Currently the stack I am using is as follows.
 
 FrontEnd: Python
-  - Discord
-  - Discord Components
-  - requests
+  Discord
+  Discord Components
+  requests
+
 API: Node.js
-  - Express
-  - Puppetteer
+  Express
+  Puppetteer
+
 Backend: mySQL
 
 <p align="right">(<a href="#top">back to top</a>)</p>
