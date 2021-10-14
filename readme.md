@@ -76,7 +76,8 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot][product-screenshot2]]()
+[![Product Name Screen Shot][product-screenshot]]()
+[![Product Name Screen Shot][product-screenshot2]]()
 
 This is the very first discord sports betting bot created (That I was able to find)! This has not been done before due to the privitization of sports betting API's. I created my own UFC API `https://github.com/erobin27/UFC-API` that allows me to get data from the UFC website. I then present this data to the user through the discord bot. Users can place bets using their balance. User's balance, wagers, discord id, and past wagers are all stored in a mySQL database.
 
