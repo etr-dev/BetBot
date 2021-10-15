@@ -32,6 +32,7 @@ def initDB():
     Q1 = mycursor.execute('CREATE TABLE Users (name VARCHAR(50), balance int UNSIGNED, dateCreated date, discordUID VARCHAR(50) PRIMARY KEY)')
     Q2 = mycursor.execute('''CREATE TABLE Wagers (wagerId int AUTO_INCREMENT,dUID VARCHAR(50),fightTitle VARCHAR(50),fighterChoice VARCHAR(50),link VARCHAR(100),wager int UNSIGNED,odds smallint,wagerDate date,fightDate VARCHAR(12),fighterColor VARCHAR(5),payout int UNSIGNED,PRIMARY KEY (wagerId),FOREIGN KEY(dUID) REFERENCES Users(discordUID))''')
     Q3 = mycursor.execute('''CREATE TABLE WagerHistory (wagerId int AUTO_INCREMENT,dUID VARCHAR(50),fightTitle VARCHAR(50),fighterChoice VARCHAR(50),link VARCHAR(100),wager int UNSIGNED,odds smallint,wagerDate date,fightDate VARCHAR(12),fighterColor VARCHAR(5),payout int UNSIGNED,outcome VARCHAR(6),PRIMARY KEY (wagerId),FOREIGN KEY(dUID) REFERENCES Users(discordUID))''')
+    Q4 = mycursor.execute('CREATE TABLE serverlist (dUID VARCHAR(50),serverName VARCHAR(50),serverID VARCHAR(50), FOREIGN KEY(dUID) REFERENCES Users(discordUID))')
     mycursor.execute(Q1)
     mycursor.execute(Q2)
 
@@ -40,9 +41,15 @@ def initDB():
 
 
 '''USER FUNCTIONS'''
-def addNewUser(name,dUID,balance=500):
+def addNewUser(name,dUID,serverName, serverID,balance=500):
     global db
     db.cursor().execute('INSERT INTO Users (name,balance,dateCreated,discordUID) VALUES (%s,%s,%s,%s)', (name,balance,datetime.now(),dUID))
+    db.cursor().execute('INSERT INTO serverlist (dUID, serverName, serverID) VALUES (%s,%s, %s)', (dUID,serverName,serverID))
+    db.commit()
+
+def addNewServerForUser(dUID, serverName, serverID):
+    global db
+    db.cursor().execute('INSERT INTO serverlist (dUID, serverName, serverID) VALUES (%s,%s, %s)', (dUID,serverName,serverID))
     db.commit()
 
 def removeUser(dUID):
@@ -55,6 +62,8 @@ def getUserBalance(dUID):
     cursor = db.cursor()
     cursor.execute('SELECT balance FROM Users WHERE discordUID = %s' % dUID)
     return cursor.fetchone()[0]
+
+
 
 def updateUserBalance(dUID, balanceChange):
     global db
@@ -73,6 +82,11 @@ def getUserByDiscordUID(dUID):  #returns dictionary of row with discord uid
     cursor.execute('SELECT * FROM Users WHERE discordUID = %s' % dUID)
     return cursor.fetchone()
 
+def isUserInServer(dUID, serverID):
+    global db
+    cursor = db.cursor(dictionary=True)
+    cursor.execute('SELECT * FROM serverlist WHERE dUID = %s HAVING serverID =%s' % (dUID, serverID))
+    return bool(cursor.fetchone())    #if it returns empty then false, user is not in that server
 
 '''WAGER FUNCTIONS'''
 #places a wager
@@ -147,9 +161,6 @@ def moveWagerToHistoryByID(wagerId,outcome):
 #print(getUserByDiscordUID(''))
 #initDB()
 #addNewUser('TEST','')
-
-
-
 
 
 

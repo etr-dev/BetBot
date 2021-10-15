@@ -319,8 +319,8 @@ async def checkForWinners():
 
 @bot.event
 async def on_ready():
-    print(f"Logged in as {bot.user}!")
-    checkForWinners.start()
+  print(f"Logged in as {bot.user}!")
+  await checkForWinners.start()
 
 @bot.command()
 async def bet(ctx):
@@ -340,9 +340,12 @@ async def bet(ctx):
 
 @bot.command()
 async def menu(ctx):
+
   if not Database.getUserByDiscordUID(ctx.message.author.id):
-    Database.addNewUser(ctx.message.author.name + '#' + ctx.message.author.discriminator,ctx.message.author.id)
-    await ctx.send('Thank you, '+ ctx.message.author.name +' , for using BetBot! I have created an account for you. Use >Menu to check your balance, see upcoming fights, and more.')
+    Database.addNewUser(ctx.message.author.name + '#' + ctx.message.author.discriminator,ctx.message.author.id,str(ctx.message.guild),ctx.message.guild.id)
+    await ctx.send('Thank you, '+ ctx.message.author.display_name +' , for using BetBot! I have created an account for you. Use >Menu to check your balance, see upcoming fights, and more.')
+  if not Database.isUserInServer(ctx.message.author.id,ctx.message.guild.id): #if user exists but does not have a server link for the server they are messaging in then create one
+    Database.addNewServerForUser(ctx.message.author.id,str(ctx.message.guild),ctx.message.guild.id)
   await helpMenu(ctx)
   
   #print(Database.getUserByDiscordUID(ctx.message.author.id))
