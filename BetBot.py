@@ -152,20 +152,20 @@ async def initBetMenu(ctx):
   response = await getUpcomingFights()
   await tempMsg.delete()
   embedList = embedAllFights(response)
-  #await ctx.send(embedList[0])
-  if len(embedList) > 1:
-      await ctx.send(embed=embedList[0])
-  await ctx.send(
-      embed=embedList[-1],
+  selOptions = listToSelectOptions(getFightTitleList(response))
+  selOptions.append(SelectOption(label='🚫 Cancel', value='Cancel'))
+  msg = await ctx.send(
+      embeds=embedList,
       components=[
           Select(
               placeholder="Select something!",
-              options= listToSelectOptions(getFightTitleList(response)),
+              options= selOptions,
               custom_id="betMenu",
           )
+
       ],
   )
-  return response
+  return [response,msg]
 
 def betbotMenuEmbed():
   embed=Embed(color = Color.green(), title="by idgnfs", url="https://www.instagram.com/idgnfs/", description="I am BetBot a discord bot that allows you to bet on upcoming UFC fights. I can keep track of your betting balance and if you go into the hole I offer ways you can make money to start your addiction of betting up again.")
@@ -196,14 +196,23 @@ def wagersEmbed(ctx,wagers):
 
 '''MENUS'''
 async def betMenu(ctx, wager):
-    response = await initBetMenu(ctx) #start up the betmenu and return the api response
+    temp = await initBetMenu(ctx) #start up the betmenu and return the api response
+    response = temp[0]
+    msg = temp[1]
 
     #Selection box response for the fight the user wants to choose
     interaction = await bot.wait_for("select_option", check=lambda inter: inter.custom_id == "betMenu" and inter.user == ctx.author)
     choice = interaction.values[0]  #choice is the selected fight i.e. 'Covington vs Usman'
+    if choice == 'Cancel':
+      await interaction.send(content='🚫 You canceled your wager') 
+      await msg.delete()  
+      return
 
+
+  
     #Let user choose the fighter they want to bet on
     choiceEmbed = chooseFighter(choice, response)
+    await msg.delete()
     await interaction.send(embed=choiceEmbed, components=[[Button(label=response['fights'][choice]['Red']['Name'], custom_id="Red", style=4),
                                                           Button(label=response['fights'][choice]['Blue']['Name'], custom_id="Blue", style=1),
                                                           Button(label='Cancel', custom_id="Cancel", style=2, emoji='🚫')]])
@@ -257,9 +266,9 @@ async def helpMenu(ctx):
     await ctx.message.delete()
     return
   elif interaction.custom_id == 'Upcoming Event':
-    await interaction.send(embeds=embedAllFights(await getUpcomingFights()))
     await msg.delete()  #throws an error if user deletes it before bot deletes it
     await ctx.message.delete()
+    await interaction.send(embeds=embedAllFights(await getUpcomingFights()))
     logUserActions(ctx,' viewed upcoming events.')
     return
   elif interaction.custom_id == 'Balance':
