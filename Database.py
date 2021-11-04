@@ -2,13 +2,115 @@ import mysql.connector
 import os
 from datetime import datetime
 
-db = mysql.connector.connect(
-    host='localhost',
-    user= os.getenv('user'),
-    passwd= os.getenv('passwd'),
-    database= os.getenv('database')
-)
+class DataBase:
+    def __init__(self):
+        self.db = mysql.connector.connect(
+            host='localhost',
+            user= os.getenv('user'),
+            passwd= os.getenv('passwd'),
+            database= os.getenv('database')
+        )
+        self.cursor = self.db.cursor()
+        self.dictionaryCursor = self.db.cursor(dictionary=True)
+        self.cursor.execute("SET SESSION MAX_EXECUTION_TIME=1000")
+        self.dictionaryCursor.execute("SET SESSION MAX_EXECUTION_TIME=1000")
+        
+    '''USER FUNCTIONS'''
+    def addNewUser(self,name,dUID,serverName, serverID,balance=500):
+        self.cursor().execute('INSERT INTO Users (name,balance,dateCreated,discordUID) VALUES (%s,%s,%s,%s)', (name,balance,datetime.now(),dUID))
+        self.cursor().execute('INSERT INTO serverlist (dUID, serverName, serverID) VALUES (%s,%s, %s)', (dUID,serverName,serverID))
+        self.db.commit()
 
+    def addNewServerForUser(self,dUID, serverName, serverID):
+        self.cursor().execute('INSERT INTO serverlist (dUID, serverName, serverID) VALUES (%s,%s, %s)', (dUID,serverName,serverID))
+        self.db.commit()
+
+    def removeUser(self,dUID):
+        self.cursor().execute('DELETE FROM Users WHERE discordUID = %s' % dUID)  
+        self.db.commit()  
+
+    def getUserBalance(self,dUID):
+        self.cursor.execute('SELECT balance FROM Users WHERE discordUID = %s' % dUID)
+        return self.cursor.fetchone()[0]
+
+    def updateUserBalance(self,dUID, balanceChange):
+        newBalance = self.getUserBalance(dUID) + balanceChange
+        self.cursor().execute('UPDATE Users SET balance = %s WHERE discordUID = %s' % (newBalance, dUID))
+        self.db.commit()
+
+    def setUserBalance(self,dUID, balance):
+        self.cursor().execute('UPDATE Users SET balance = %s WHERE discordUID = %s' % (balance, dUID))
+        self.db.commit()
+
+    def getUserByDiscordUID(self,dUID):  #returns dictionary of row with discord uid
+        self.dictionaryCursor.execute('SELECT * FROM Users WHERE discordUID = %s' % dUID)
+        return self.dictionaryCursor.fetchone()
+
+    def isUserInServer(self,dUID, serverID):
+        self.dictionaryCursor.execute('SELECT * FROM serverlist WHERE dUID = %s HAVING serverID =%s' % (dUID, serverID))
+        return bool(self.dictionaryCursor.fetchone())    #if it returns empty then false, user is not in that server
+
+    '''WAGER FUNCTIONS'''
+    #places a wager
+    def placeWager(self,dUID, fightTitle, fighterChoice,link,wager,odds,fightDate,fighterColor,payout):
+        self.cursor().execute('INSERT INTO Wagers (dUID,fightTitle,fighterChoice,link,wager,odds,wagerDate,fightDate,fighterColor,payout) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', (dUID,fightTitle,fighterChoice,link,wager,odds,datetime.now(), fightDate,fighterColor,payout))
+        self.db.commit()
+
+    #returns all wagers made by a single user
+    def getWagersByDUID(self,dUID):
+        self.dictionaryCursor.execute('SELECT * FROM Wagers WHERE dUID = %s' % dUID)
+        return self.dictionaryCursor.fetchall()
+
+    #returns all wagers made by a single user
+    def getWagersByFightDate(self,fDate):
+        self.dictionaryCursor.execute('SELECT * FROM Wagers WHERE fightDate = \'%s\'' % fDate)
+        return self.dictionaryCursor.fetchall()
+
+    #returns a single wager by the wagerId
+    def getWagerByWagerID(self,wID):
+        self.dictionaryCursor.execute('SELECT * FROM Wagers WHERE wagerId = %s' % wID)
+        return self.dictionaryCursor.fetchone()
+
+    def getActiveWagers(self):
+        self.dictionaryCursor.execute('SELECT * FROM Wagers')
+        return self.dictionaryCursor.fetchall()
+
+    #returns all bets on a specific fight
+    def getWagersByFightTitle(self,fightTitle):
+        self.dictionaryCursor.execute('SELECT * FROM Wagers WHERE fightTitle = %s' % fightTitle)
+        return self.dictionaryCursor.fetchall()
+
+    #remove all bets on a specific fight
+    def removeWagersByFightTitle(self,fightTitle):
+        self.cursor().execute('DELETE FROM Wagers WHERE fightTitle = %s' % fightTitle)  
+        self.db.commit()  
+        return '[Database]: removed all wagers %s by dUID' % fightTitle
+
+    #removes a single bet by the wagerId
+    def removeWagerByID(self,wagerID):
+        self.cursor().execute('DELETE FROM Wagers WHERE wagerId = %s' % wagerID)
+        self.db.commit()
+        return '[Database]: removed wager %s by wagerId' % wagerID
+
+    #removes all bets a user has placed
+    def removeWagersByDUID(self,dUID):
+        self.cursor().execute('DELETE FROM Wagers WHERE dUID = %s' % dUID)  
+        self.db.commit()  
+        return '[Database]: removed all wagers %s by dUID' % dUID
+
+    def moveWagerToHistoryByID(self,wagerId,outcome):
+        self.cursor().execute('INSERT INTO wagerhistory (wagerId, dUID, fightTitle, fighterChoice, link, wager, odds, wagerDate, fightDate, fighterColor, payout) SELECT * FROM wagers WHERE wagerId = %s' % wagerId) 
+        self.cursor().execute('DELETE FROM wagers WHERE wagerId = %s' % wagerId)
+        self.cursor().execute('UPDATE wagerhistory SET outcome = \'%s\' WHERE wagerId = %s' % (outcome, wagerId))
+        self.db.commit()  
+
+    def getWagerHistoryByDUID(self,dUID):
+        self.dictionaryCursor.execute('SELECT * FROM wagerhistory WHERE dUID = %s' % dUID)
+        return self.dictionaryCursor.fetchall()
+
+    def getLastWagersByDUID(self,dUID,amount=5):
+        self.dictionaryCursor.execute('SELECT * from wagerhistory WHERE dUID = %s order by wagerId desc limit %s' % (dUID,amount))
+        return self.dictionaryCursor.fetchall()
 
 #ONLY CALL THIS WHEN CREATING A NEW DATABASE
 def initDB():
@@ -37,145 +139,3 @@ def initDB():
     mycursor.execute(Q2)
 
     db.commit()
-
-
-
-'''USER FUNCTIONS'''
-def addNewUser(name,dUID,serverName, serverID,balance=500):
-    global db
-    db.cursor().execute('INSERT INTO Users (name,balance,dateCreated,discordUID) VALUES (%s,%s,%s,%s)', (name,balance,datetime.now(),dUID))
-    db.cursor().execute('INSERT INTO serverlist (dUID, serverName, serverID) VALUES (%s,%s, %s)', (dUID,serverName,serverID))
-    db.commit()
-
-def addNewServerForUser(dUID, serverName, serverID):
-    global db
-    db.cursor().execute('INSERT INTO serverlist (dUID, serverName, serverID) VALUES (%s,%s, %s)', (dUID,serverName,serverID))
-    db.commit()
-
-def removeUser(dUID):
-   global db
-   db.cursor().execute('DELETE FROM Users WHERE discordUID = %s' % dUID)  
-   db.commit()  
-
-def getUserBalance(dUID):
-    global db
-    cursor = db.cursor()
-    cursor.execute('SELECT balance FROM Users WHERE discordUID = %s' % dUID)
-    return cursor.fetchone()[0]
-
-
-
-def updateUserBalance(dUID, balanceChange):
-    global db
-    newBalance = getUserBalance(dUID) + balanceChange
-    db.cursor().execute('UPDATE Users SET balance = %s WHERE discordUID = %s' % (newBalance, dUID))
-    db.commit()
-
-def setUserBalance(dUID, balance):
-    global db
-    db.cursor().execute('UPDATE Users SET balance = %s WHERE discordUID = %s' % (balance, dUID))
-    db.commit()
-
-def getUserByDiscordUID(dUID):  #returns dictionary of row with discord uid
-    global db
-    cursor = db.cursor(dictionary=True)
-    cursor.execute('SELECT * FROM Users WHERE discordUID = %s' % dUID)
-    return cursor.fetchone()
-
-def isUserInServer(dUID, serverID):
-    global db
-    cursor = db.cursor(dictionary=True)
-    cursor.execute('SELECT * FROM serverlist WHERE dUID = %s HAVING serverID =%s' % (dUID, serverID))
-    return bool(cursor.fetchone())    #if it returns empty then false, user is not in that server
-
-'''WAGER FUNCTIONS'''
-#places a wager
-def placeWager(dUID, fightTitle, fighterChoice,link,wager,odds,fightDate,fighterColor,payout):
-    global db
-    db.cursor().execute('INSERT INTO Wagers (dUID,fightTitle,fighterChoice,link,wager,odds,wagerDate,fightDate,fighterColor,payout) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', (dUID,fightTitle,fighterChoice,link,wager,odds,datetime.now(), fightDate,fighterColor,payout))
-    db.commit()
-
-#returns all wagers made by a single user
-def getWagersByDUID(dUID):
-    global db
-    cursor = db.cursor(dictionary=True)
-    cursor.execute('SELECT * FROM Wagers WHERE dUID = %s' % dUID)
-    return cursor.fetchall()
-
-#returns all wagers made by a single user
-def getWagersByFightDate(fDate):
-    global db
-    cursor = db.cursor(dictionary=True)
-    cursor.execute('SELECT * FROM Wagers WHERE fightDate = \'%s\'' % fDate)
-    return cursor.fetchall()
-
-#returns a single wager by the wagerId
-def getWagerByWagerID(wID):
-    global db
-    cursor = db.cursor(dictionary=True)
-    cursor.execute('SELECT * FROM Wagers WHERE wagerId = %s' % wID)
-    return cursor.fetchone()
-
-#returns all bets on a specific fight
-def getWagersByFightTitle(fightTitle):
-    global db
-    cursor = db.cursor(dictionary=True)
-    cursor.execute('SELECT * FROM Wagers WHERE fightTitle = %s' % fightTitle)
-    return cursor.fetchall()
-
-#remove all bets on a specific fight
-def removeWagersByFightTitle(fightTitle):
-    global db
-    db.cursor().execute('DELETE FROM Wagers WHERE fightTitle = %s' % fightTitle)  
-    db.commit()  
-    return '[Database]: removed all wagers %s by dUID' % fightTitle
-
-#removes a single bet by the wagerId
-def removeWagerByID(wagerID):
-    global db
-    db.cursor().execute('DELETE FROM Wagers WHERE wagerId = %s' % wagerID)
-    db.commit()
-    return '[Database]: removed wager %s by wagerId' % wagerID
-
-#removes all bets a user has placed
-def removeWagersByDUID(dUID):
-    global db
-    db.cursor().execute('DELETE FROM Wagers WHERE dUID = %s' % dUID)  
-    db.commit()  
-    return '[Database]: removed all wagers %s by dUID' % dUID
-
-def moveWagerToHistoryByID(wagerId,outcome):
-    global db
-    db.cursor().execute('INSERT INTO wagerhistory (wagerId, dUID, fightTitle, fighterChoice, link, wager, odds, wagerDate, fightDate, fighterColor, payout) SELECT * FROM wagers WHERE wagerId = %s' % wagerId) 
-    db.cursor().execute('DELETE FROM wagers WHERE wagerId = %s' % wagerId)
-    db.cursor().execute('UPDATE wagerhistory SET outcome = \'%s\' WHERE wagerId = %s' % (outcome, wagerId))
-    db.commit()  
-#addNewUser('TEST','')
-#for i in getUserByDiscordUID(''):
-#   print(i)
-
-#placeWager('', 'Blachowicz vs Teixeira', 'Blue', 'https://www.ufc.com/event/ufc-267', 100, 120)
-#placeWager('', 'Usman vs Covington', 'Red', 'https://www.ufc.com/event/ufc-268', 300, -120)
-#print(getWagerByWagerID(6))
-#updateUserBalance('',-200)
-#print(getUserByDiscordUID(''))
-#initDB()
-#addNewUser('TEST','')
-
-
-
-
-
-
-
-#mycursor.execute('CREATE DATABASE BetBotDB')
-#Q1 = mycursor.execute('CREATE TABLE Users (name VARCHAR(50), balance int UNSIGNED, dateCreated date, id int PRIMARY KEY AUTO_INCREMENT)')
-#Q2 = mycursor.execute('''CREATE TABLE Wagers (wagerId int AUTO_INCREMENT,userId int,fightTitle VARCHAR(50),fighterChoice VARCHAR(50),link VARCHAR(100),wager int UNSIGNED,odds smallint,wagerDate date,PRIMARY KEY (wagerId),FOREIGN KEY(userId) REFERENCES Users(id))''')
-
-#mycursor.execute(Q1)
-#mycursor.execute(Q2)
-#mycursor.execute('CREATE TABLE Person (name VARCHAR(50), age smallint UNSIGNED, personID int PRIMARY KEY AUTO_INCREMENT)')
-#mycursor.execute('INSERT INTO Person (name, age) VALUES (%s,%s)', ('poggie',21))
-#db.commit()
-#mycursor.execute('SELECT * FROM Person')
-

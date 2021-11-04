@@ -4,9 +4,12 @@ from discord.ext import tasks
 from discord_components import Button, Select, SelectOption, ComponentsBot
 import requests #for api requests
 import os
-import Database
+
+from requests.api import delete
+from Database import DataBase
 import locale
 from datetime import date, datetime
+Database = DataBase()
 locale.setlocale(locale.LC_ALL, 'en_US')
 bot = ComponentsBot(">")
 """
@@ -89,15 +92,29 @@ def calculatePayout(initialBet, odds):
   elif '-' == odds[0]:  #if favorite
     return (initialBet/int(odds[1:])) * 100 + initialBet
 
-async def editInteractionMessage(interaction, contentObj):  #contentObj needs to be passed in like: {'content' : 'your text here'} or like: {'embed': embedObj}
+async def editInteractionFollowup(interaction,message, contentObj):  #contentObj needs to be passed in like: {'content' : 'your text here'} or like: {'embed': embedObj}
   appId = os.getenv('APPID')
+  token = interaction.interaction_token
+  messageID = message.id
+  requests.patch(f'https://discord.com/api/v8/webhooks/{appId}/{token}/messages/{messageID}',contentObj)
+
+async def deleteInteractionFollowup(interaction,message):  #contentObj needs to be passed in like: {'content' : 'your text here'} or like: {'embed': embedObj}
+  appId = os.getenv('APPID')
+  token = interaction.interaction_token
+  messageID = message.id
+  return requests.delete(f'https://discord.com/api/v8/webhooks/{appId}/{token}/messages/{messageID}')
+
+
+async def editInteractionMessage(interaction, contentObj):  #contentObj needs to be passed in like: {'content' : 'your text here'} or like: {'embed': embedObj}
+  appId = os.getenv('APPID-TEST')
+  print('THIS IS IN TESTING CHANGE APPID')
   token = interaction.interaction_token
   requests.patch(f'https://discord.com/api/v8/webhooks/{appId}/{token}/messages/@original',contentObj)
 
 async def deleteInteractionMessage(interaction):
   appId = os.getenv('APPID')
   token = interaction.interaction_token
-  requests.patch(f'https://discord.com/api/v8/webhooks/{appId}/{token}/messages/@original',{'method':'DELETE'})
+  requests.delete(f'https://discord.com/api/v8/webhooks/{appId}/{token}/messages/@original')
 
 '''GET API INFO AND DISPLAY IT'''
 #embedAllFights(api response): Returns a discord Embed list of one or 2 embeds to be displayed
@@ -183,18 +200,61 @@ def balanceEmbed(ctx):
 
 def wagersEmbed(ctx,wagers):
   #title= ctx.message.author.name + '#' + ctx.message.author.discriminator +" Balance:"
+  count = 0
+  embedList = []
   embed=Embed(color=Color.green(), title= ctx.message.author.name + '#' + ctx.message.author.discriminator +" Wagers:")
   embed.set_author(name="BetBot", icon_url="https://cdn.discordapp.com/avatars/895536293356924979/fc5defd0df0442bd4a2326e552c11899.png?size=32")
   for wager in wagers:
-    if wager['odds'] > 0:
+    if int(wager['odds']) > 0:
       wager['odds'] = '+' + str(wager['odds'])
+    
+    if count % 6 == 0 and count != 0: #put 6 wagers on each embed/each page
+      embedList.append(embed)
+      embed=Embed(color=Color.green(), title= ctx.message.author.name + '#' + ctx.message.author.discriminator +" Wagers:")
+      embed.set_author(name="BetBot", icon_url="https://cdn.discordapp.com/avatars/895536293356924979/fc5defd0df0442bd4a2326e552c11899.png?size=32") 
 
     embed.add_field(name=wager['fightTitle'], value='Your Pick: ' + wager['fighterChoice'] + '\nOdds: ' + str(wager['odds']))
     embed.add_field(name='\u200B', value='Your Bet: ' + str(wager['wager']) + '\nPayout: ' + str(wager['payout']), inline=True)
     embed.add_field(name='\u200B', value='\u200B')
-  return embed
+    count += 1
 
+  return embedList
+
+def singleEmbededWagers(ctx,wagers,title = 'Wagers'):
+  embedList = []
+  for wager in wagers:
+    if int(wager['odds']) > 0:
+      wager['odds'] = '+' + str(wager['odds'])
+    
+    wDate = wager['wagerDate']
+    sideColor=Color.light_grey()
+    try:
+      if wager['outcome'] == 'win':
+        sideColor=Color.green()
+      elif wager['outcome'] == 'loss':
+        sideColor=Color.red()
+        wager['payout'] = 0
+      else:
+        sideColor=Color.light_grey()
+        wager['payout'] = wager['odds']
+    except:
+      pass
+            
+    embed=Embed(color=sideColor, title= wager['fightTitle'])
+    embed.set_footer(text =str(wDate.month) + '/' + str(wDate.day) + '/' + str(wDate.year))
+    embed.add_field(name='Your Pick:', value=wager['fighterChoice'] + '\n' + str(wager['odds']))
+    embed.add_field(name='\u200B', value='\u200B')
+    embed.add_field(name='Wager', value='$' + str(wager['wager']) + '\nPayout: $' + str(wager['payout']), inline=True)
+
+    embedList.append(embed)
+
+  return embedList
 '''MENUS'''
+async def wagersMenu(ctx,interaction):
+  activeWagers = Database.getWagersByDUID(ctx.message.author.id)
+  historyWagers = Database.getLastWagersByDUID(ctx.message.author.id) #returns last 5 wagers
+  await interaction.send(embeds = singleEmbededWagers(ctx,historyWagers,'Wager History'))
+
 async def betMenu(ctx, wager):
     temp = await initBetMenu(ctx) #start up the betmenu and return the api response
     response = temp[0]
@@ -255,10 +315,10 @@ async def betMenu(ctx, wager):
 async def helpMenu(ctx):
   msg = await ctx.send(file=File('images/botImages/Menu.png'), components=[[Button(label='Upcoming Event', custom_id="Upcoming Event", style=3),
                                                           Button(label='Balance', custom_id="Balance", style=3),
-                                                          Button(label='My Wagers', custom_id="My Wagers", style=3),
+                                                          Button(label='Wagers', custom_id="Wagers", style=3),
                                                           Button(label='Cancel', custom_id="Cancel", style=2, emoji='🚫')]])
   interaction = await bot.wait_for(
-        "button_click", check=lambda inter: (inter.custom_id == "Upcoming Event" or inter.custom_id == "Balance"  or inter.custom_id == "My Wagers" or inter.custom_id == "Cancel") and inter.user == ctx.author
+        "button_click", check=lambda inter: (inter.custom_id == "Upcoming Event" or inter.custom_id == "Balance"  or inter.custom_id == "Wagers" or inter.custom_id == "Cancel") and inter.user == ctx.author
     ) 
   #cancel wager
   if interaction.custom_id == 'Cancel':
@@ -277,9 +337,8 @@ async def helpMenu(ctx):
     await ctx.message.delete()
     logUserActions(ctx,' checked their balance.')
     return
-  elif interaction.custom_id == 'My Wagers':
-    wagers = Database.getWagersByDUID(ctx.message.author.id)
-    await interaction.send(embed=wagersEmbed(ctx,wagers))
+  elif interaction.custom_id == 'Wagers':
+    await wagersMenu(ctx, interaction)
     await msg.delete()  #throws an error if user deletes it before bot deletes it
     await ctx.message.delete()
     logUserActions(ctx,' viewed their wagers.')
@@ -290,7 +349,7 @@ async def helpMenu(ctx):
 '''BOT COMMMANDS'''
 @tasks.loop(minutes=30)
 async def checkForWinners():
-  if date.today().weekday() != 5 or date.today().weekday() != 6:  #if it is not saturday or sunday
+  if date.today().weekday() < 5:  #if it is not saturday or sunday
     return
   #print(str(date.today())[5:])
   wagers=Database.getWagersByFightDate(str(date.today())[5:])
