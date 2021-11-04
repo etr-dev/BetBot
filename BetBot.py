@@ -351,29 +351,33 @@ async def helpMenu(ctx):
 async def checkForWinners():
   if date.today().weekday() < 5:  #if it is not saturday or sunday
     return
-  #print(str(date.today())[5:])
-  wagers=Database.getWagersByFightDate(str(date.today())[5:])
-  if wagers:
-    print('\t\tChecking Wager')
-    url = wagers[0]['link']
-    try:
-      res = await getFightByURL(url)
-    except:
-      print('Error: in checkForWinners')
-      return
-    for wager in wagers:
-      outcome = res['fights'][wager['fightTitle']][wager['fighterColor']]['Outcome'].lower()
-      if outcome == 'win':
-        Database.updateUserBalance(wager['dUID'],wager['payout'])
-        Database.moveWagerToHistoryByID(wager['wagerId'],'win')
-      elif outcome == 'loss':
-        print('he lose')
-        Database.moveWagerToHistoryByID(wager['wagerId'], 'loss')
-      elif outcome == '':
-        pass
-      else:   #draw or no contest
-        Database.updateUserBalance(wager['dUID'],wager['wager'])
-        Database.moveWagerToHistoryByID(wager['wagerId'], 'draw')
+
+  try:  
+    wagers=Database.getWagersByFightDate(str(date.today())[5:])
+    if wagers:
+      print('\t\tChecking Wager')
+      url = wagers[0]['link']
+      try:
+        res = await getFightByURL(url)
+      except:
+        print('Error: in checkForWinners')
+        return
+      for wager in wagers:
+        outcome = res['fights'][wager['fightTitle']][wager['fighterColor']]['Outcome'].lower()
+        if outcome == 'win':
+          Database.updateUserBalance(wager['dUID'],wager['payout'])
+          Database.moveWagerToHistoryByID(wager['wagerId'],'win')
+        elif outcome == 'loss':
+          print('he lose')
+          Database.moveWagerToHistoryByID(wager['wagerId'], 'loss')
+        elif outcome == '':
+          pass
+        else:   #draw or no contest
+          Database.updateUserBalance(wager['dUID'],wager['wager'])
+          Database.moveWagerToHistoryByID(wager['wagerId'], 'draw')
+  except Exception as e:
+    print('ERROR in checkForWinners loop')
+    print(e) 
   #get all fights for today
 
 @bot.event
@@ -383,30 +387,36 @@ async def on_ready():
 
 @bot.command()
 async def bet(ctx):
-  if not Database.getUserByDiscordUID(ctx.message.author.id):
-    Database.addNewUser(ctx.message.author.name + '#' + ctx.message.author.discriminator,ctx.message.author.id)
-    await ctx.send('Thank you, '+ ctx.message.author.name +' , for using BetBot! I have created an account for you. Use >Menu to check your balance, see upcoming fights, and more.')
   try:
-    wager = int(ctx.message.content.split()[1])
-  except:
-    await ctx.send(content='When placing a bet make sure you include a space with your wager afterwards:\n >bet 420')
-    return
-  
-  if wager > 0 and wager <= Database.getUserBalance(ctx.message.author.id):
-    await betMenu(ctx, int(wager))
-  else:
-    await ctx.send(content='Make sure you are wagering more than 0 and less than or equal to the amount in your bank')
-
+    if not Database.getUserByDiscordUID(ctx.message.author.id):
+      Database.addNewUser(ctx.message.author.name + '#' + ctx.message.author.discriminator,ctx.message.author.id)
+      await ctx.send('Thank you, '+ ctx.message.author.name +' , for using BetBot! I have created an account for you. Use >Menu to check your balance, see upcoming fights, and more.')
+    try:
+      wager = int(ctx.message.content.split()[1])
+    except:
+      await ctx.send(content='When placing a bet make sure you include a space with your wager afterwards:\n >bet 420')
+      return
+    
+    if wager > 0 and wager <= Database.getUserBalance(ctx.message.author.id):
+      await betMenu(ctx, int(wager))
+    else:
+      await ctx.send(content='Make sure you are wagering more than 0 and less than or equal to the amount in your bank')
+  except Exception as e:
+    print('ERROR in bet')
+    print(e) 
 @bot.command()
 async def menu(ctx):
 
-  if not Database.getUserByDiscordUID(ctx.message.author.id):
-    Database.addNewUser(ctx.message.author.name + '#' + ctx.message.author.discriminator,ctx.message.author.id,str(ctx.message.guild),ctx.message.guild.id)
-    await ctx.send('Thank you, '+ ctx.message.author.display_name +' , for using BetBot! I have created an account for you. Use >Menu to check your balance, see upcoming fights, and more.')
-  if not Database.isUserInServer(ctx.message.author.id,ctx.message.guild.id): #if user exists but does not have a server link for the server they are messaging in then create one
-    Database.addNewServerForUser(ctx.message.author.id,str(ctx.message.guild),ctx.message.guild.id)
-  await helpMenu(ctx)
-  
+  try:
+    if not Database.getUserByDiscordUID(ctx.message.author.id):
+      Database.addNewUser(ctx.message.author.name + '#' + ctx.message.author.discriminator,ctx.message.author.id,str(ctx.message.guild),ctx.message.guild.id)
+      await ctx.send('Thank you, '+ ctx.message.author.display_name +' , for using BetBot! I have created an account for you. Use >Menu to check your balance, see upcoming fights, and more.')
+    if not Database.isUserInServer(ctx.message.author.id,ctx.message.guild.id): #if user exists but does not have a server link for the server they are messaging in then create one
+      Database.addNewServerForUser(ctx.message.author.id,str(ctx.message.guild),ctx.message.guild.id)
+    await helpMenu(ctx)
+  except Exception as e:
+    print('ERROR in Menu')
+    print(e) 
   #print(Database.getUserByDiscordUID(ctx.message.author.id))
 
 
