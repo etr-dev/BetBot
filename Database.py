@@ -12,6 +12,14 @@ class DataBase:
         )
         self.cursor = self.db.cursor()
     
+    def getDB(self):
+        self.db = mysql.connector.connect(
+            host='localhost',
+            user= os.getenv('user'),
+            passwd= os.getenv('passwd'),
+            database= os.getenv('database')
+        )
+
     def setupCursor(self, isDict=False):
         self.cursor.close() #close existing cursor
         self.cursor = self.db.cursor(dictionary=isDict)

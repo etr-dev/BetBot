@@ -18,7 +18,7 @@ or you can just override the methods yourself
 bot = discord.ext.commands.Bot("!")
 DiscordComponents(bot)
 """
-testing = True
+testing = False
 apiBaseURL = 'http://localhost:3000'
 
 
@@ -335,6 +335,7 @@ async def helpMenu(ctx):
 '''BOT COMMMANDS'''
 @tasks.loop(minutes=30)
 async def checkForWinners():
+  Database.getDB() #refresh DB (hopefully)
   if date.today().weekday() < 5:  #if it is not saturday or sunday
     return
 
