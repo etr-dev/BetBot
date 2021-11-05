@@ -18,7 +18,7 @@ class DataBase:
             user= os.getenv('user'),
             passwd= os.getenv('passwd'),
             database= os.getenv('database')
-        )
+            )
 
     def setupCursor(self, isDict=False):
         self.cursor.close() #close existing cursor
