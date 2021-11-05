@@ -21,7 +21,6 @@ class DataBase:
             )
 
     def setupCursor(self, isDict=False):
-        self.cursor.close() #close existing cursor
         self.cursor = self.db.cursor(dictionary=isDict)
         self.cursor.execute("SET SESSION MAX_EXECUTION_TIME=1000")
 
