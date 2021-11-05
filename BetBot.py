@@ -92,22 +92,8 @@ def calculatePayout(initialBet, odds):
   elif '-' == odds[0]:  #if favorite
     return (initialBet/int(odds[1:])) * 100 + initialBet
 
-async def editInteractionFollowup(interaction,message, contentObj):  #contentObj needs to be passed in like: {'content' : 'your text here'} or like: {'embed': embedObj}
-  appId = os.getenv('APPID')
-  token = interaction.interaction_token
-  messageID = message.id
-  requests.patch(f'https://discord.com/api/v8/webhooks/{appId}/{token}/messages/{messageID}',contentObj)
-
-async def deleteInteractionFollowup(interaction,message):  #contentObj needs to be passed in like: {'content' : 'your text here'} or like: {'embed': embedObj}
-  appId = os.getenv('APPID')
-  token = interaction.interaction_token
-  messageID = message.id
-  return requests.delete(f'https://discord.com/api/v8/webhooks/{appId}/{token}/messages/{messageID}')
-
-
 async def editInteractionMessage(interaction, contentObj):  #contentObj needs to be passed in like: {'content' : 'your text here'} or like: {'embed': embedObj}
-  appId = os.getenv('APPID-TEST')
-  print('THIS IS IN TESTING CHANGE APPID')
+  appId = os.getenv('APPID')
   token = interaction.interaction_token
   requests.patch(f'https://discord.com/api/v8/webhooks/{appId}/{token}/messages/@original',contentObj)
 
@@ -253,7 +239,7 @@ def singleEmbededWagers(ctx,wagers,title = 'Wagers'):
 async def wagersMenu(ctx,interaction):
   activeWagers = Database.getWagersByDUID(ctx.message.author.id)
   historyWagers = Database.getLastWagersByDUID(ctx.message.author.id) #returns last 5 wagers
-  await interaction.send(embeds = singleEmbededWagers(ctx,historyWagers,'Wager History'))
+  await interaction.send(embeds = singleEmbededWagers(ctx,activeWagers,'Wager History'))
 
 async def betMenu(ctx, wager):
     temp = await initBetMenu(ctx) #start up the betmenu and return the api response
@@ -303,15 +289,15 @@ async def betMenu(ctx, wager):
       choice2,
       int(calculatePayout(wager,response['fights'][choice][interaction2.custom_id]['Odds']))
       )
-
     #Remove wager from user's bank
     if Database.getUserBalance(ctx.message.author.id) >= wager:
       Database.updateUserBalance(ctx.message.author.id, -wager)
+
       await editInteractionMessage(interaction2,{'content' : 'Your wager has been placed!'})
       logUserActions(ctx,' placed a wager.')
     else:
       await editInteractionMessage(interaction2,{'content' : 'You do not have enough money. Check your balance with >menu'})
-    
+
 async def helpMenu(ctx):
   msg = await ctx.send(file=File('images/botImages/Menu.png'), components=[[Button(label='Upcoming Event', custom_id="Upcoming Event", style=3),
                                                           Button(label='Balance', custom_id="Balance", style=3),
@@ -387,23 +373,24 @@ async def on_ready():
 
 @bot.command()
 async def bet(ctx):
-  try:
-    if not Database.getUserByDiscordUID(ctx.message.author.id):
-      Database.addNewUser(ctx.message.author.name + '#' + ctx.message.author.discriminator,ctx.message.author.id)
-      await ctx.send('Thank you, '+ ctx.message.author.name +' , for using BetBot! I have created an account for you. Use >Menu to check your balance, see upcoming fights, and more.')
     try:
-      wager = int(ctx.message.content.split()[1])
-    except:
-      await ctx.send(content='When placing a bet make sure you include a space with your wager afterwards:\n >bet 420')
-      return
-    
-    if wager > 0 and wager <= Database.getUserBalance(ctx.message.author.id):
-      await betMenu(ctx, int(wager))
-    else:
-      await ctx.send(content='Make sure you are wagering more than 0 and less than or equal to the amount in your bank')
-  except Exception as e:
-    print('ERROR in bet')
-    print(e) 
+      if not Database.getUserByDiscordUID(ctx.message.author.id):
+        Database.addNewUser(ctx.message.author.name + '#' + ctx.message.author.discriminator,ctx.message.author.id)
+        await ctx.send('Thank you, '+ ctx.message.author.name +' , for using BetBot! I have created an account for you. Use >Menu to check your balance, see upcoming fights, and more.')
+      try:
+        wager = int(ctx.message.content.split()[1])
+      except:
+        await ctx.send(content='When placing a bet make sure you include a space with your wager afterwards:\n >bet 420')
+        return
+      
+      if wager > 0 and wager <= Database.getUserBalance(ctx.message.author.id):
+        await betMenu(ctx, int(wager))
+      else:
+        await ctx.send(content='Make sure you are wagering more than 0 and less than or equal to the amount in your bank')
+    except Exception as e:
+      print('ERROR in bet')
+      print(e) 
+
 @bot.command()
 async def menu(ctx):
 
