@@ -75,7 +75,7 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
-
+Invite BetBot to your server! (BETA): <a href="https://discord.com/api/oauth2/authorize?client_id=895536293356924979&permissions=535260822592&scope=bot"><strong>INVITE</strong></a><br/>
 [![Product Name Screen Shot][product-screenshot]]()
 [![Product Name Screen Shot][product-screenshot2]]()
 
