@@ -1,4 +1,4 @@
-from discord import Client,Embed, Color, File
+from discord import Client,Embed, Color, File, embeds
 from discord.ext.commands.core import check
 from discord.ext import tasks
 from discord_components import Button, Select, SelectOption, ComponentsBot
@@ -11,7 +11,7 @@ import locale
 from datetime import date, datetime
 Database = DataBase()
 locale.setlocale(locale.LC_ALL, 'en_US')
-bot = ComponentsBot(">")
+bot = ComponentsBot("-")
 """
 or you can just override the methods yourself
 
@@ -92,13 +92,19 @@ def calculatePayout(initialBet, odds):
   elif '-' == odds[0]:  #if favorite
     return (initialBet/int(odds[1:])) * 100 + initialBet
 
+async def sendInteractionFollowup(interaction, contentObj):  #contentObj needs to be passed in like: {'content' : 'your text here'} or like: {'embed': embedObj}
+  appId = os.getenv('APPIDTEST')
+  token = interaction.interaction_token
+  requests.post(f'https://discord.com/api/v8/webhooks/{appId}/{token}',contentObj)
+
+
 async def editInteractionMessage(interaction, contentObj):  #contentObj needs to be passed in like: {'content' : 'your text here'} or like: {'embed': embedObj}
-  appId = os.getenv('APPID')
+  appId = os.getenv('APPIDTEST')
   token = interaction.interaction_token
   requests.patch(f'https://discord.com/api/v8/webhooks/{appId}/{token}/messages/@original',contentObj)
 
 async def deleteInteractionMessage(interaction):
-  appId = os.getenv('APPID')
+  appId = os.getenv('APPIDTEST')
   token = interaction.interaction_token
   requests.delete(f'https://discord.com/api/v8/webhooks/{appId}/{token}/messages/@original')
 
@@ -312,9 +318,10 @@ async def helpMenu(ctx):
     await ctx.message.delete()
     return
   elif interaction.custom_id == 'Upcoming Event':
-    await msg.delete()  #throws an error if user deletes it before bot deletes it
-    await ctx.message.delete()
-    await interaction.send(embeds=embedAllFights(await getUpcomingFights()))
+    # Defering responce
+    await interaction.defer() 
+    upcomingEmbeds = embedAllFights(await getUpcomingFights())
+    await interaction.respond(type=5,embeds=upcomingEmbeds)
     logUserActions(ctx,' viewed upcoming events.')
     return
   elif interaction.custom_id == 'Balance':
