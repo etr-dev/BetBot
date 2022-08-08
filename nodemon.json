@@ -1,6 +1,9 @@
 {
-    "ignore": ["**/*.test.ts", "**/*.spec.ts", "node_modules"],
-    "watch": ["src"],
-    "exec": "yarn start",
-    "ext": "ts"
+  "ignore": ["**/*.test.ts", "**/*.spec.ts", "node_modules"],
+  "watch": ["src"],
+  "exec": "yarn start",
+  "ext": "ts",
+  "events": {
+    "start": "node -e console.clear()"
   }
+}

@@ -1,27 +1,34 @@
+import { ActionRowBuilder, EmbedBuilder, Message, SelectMenuBuilder } from "discord.js";
+import { listToSelectOptions } from "../displayFormatting/selectOption";
+import { embedFights } from "../displayFormatting/embedfights";
+import { getUpcomingFights } from "../ufcApi";
+import { client } from "src/bot";
 
-async function initBetMenu(msg) {
+async function initBetMenu(msg, response) {
     let tempMsg = await msg.reply('Retrieving data please wait...');
-    //const response = await getUpcomingFights()
-    await new Promise(r => setTimeout(r, 2000));
-    await tempMsg.delete()
+    const matchupList: string[] = Object.keys(response['fights']);
+    await tempMsg.delete();
+    const embedList: EmbedBuilder[] = await embedFights(response);
+    let matchSelector = new ActionRowBuilder()
+			.addComponents(
+				new SelectMenuBuilder()
+					.setCustomId('select')
+					.setPlaceholder('Nothing selected')
+					.addOptions(
+						await listToSelectOptions(matchupList)
+					),
+			);
 
-    // embedList = embedAllFights(response)
-    // selOptions = listToSelectOptions(getFightTitleList(response))
-    // selOptions.append(SelectOption(label='🚫 Cancel', value='Cancel'))
-    // msg = await ctx.send(
-    //     embeds=embedList,
-    //     components=[
-    //         Select(
-    //             placeholder="Select something!",
-    //             options= selOptions,
-    //             custom_id="betMenu",
-    //         )
 
-    //     ],
-    // )
-    // return [response,msg]
+    let matchSelectionMsg = await msg.reply({
+        embeds: embedList,
+        components: [matchSelector]
+    });
+
+    return matchSelectionMsg;
 }
 
 export async function betMenu(msg, wager) {
-    initBetMenu(msg);
+    const response = await getUpcomingFights();
+    let matchSelectionMsg: Message<boolean> = await initBetMenu(msg, response);
 }

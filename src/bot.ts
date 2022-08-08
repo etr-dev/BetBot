@@ -1,8 +1,9 @@
-import { logServer } from './utils/log';
+
 import { Client, GatewayIntentBits } from 'discord.js';
 import { config } from 'dotenv';
-import { betMenu } from './commands/betMenu';
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
+import { betMenu } from './commands';
+import { logServer } from './utils';
+export const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
 const botSymbol = '-';
 config();
 
