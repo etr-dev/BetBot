@@ -9,17 +9,19 @@ async function pagifyFightEmbeds(
   let embedReturnList = [];
   const numberOfMatches = matchupList.length;
 
-    let embed = new EmbedBuilder(embedTemplate);
+  let embed = new EmbedBuilder(embedTemplate);
   let pageNumber = 1;
-    for (let i = 0; i < numberOfMatches; i++) {
+  for (let i = 0; i < numberOfMatches; i++) {
     if (i % 7 == 0 && i != 0) {
       embedReturnList.push(embed);
-        embed = new EmbedBuilder({
-            color: Colors.Green,
-            footer: { text: `${pageNumber}` }
-        })
+      embed = new EmbedBuilder({
+        color: Colors.Green,
+        footer: { text: `${pageNumber}` },
+      });
       pageNumber++;
-      embed.setFooter({ text: `Page ${pageNumber}\n________________________________________________________________` });
+      embed.setFooter({
+        text: `Page ${pageNumber}\n________________________________________________________________`,
+      });
     }
 
     const { Red, Blue } = apiResponse['fights'][matchupList[i]];
@@ -38,10 +40,10 @@ async function pagifyFightEmbeds(
       value: Blue['Odds'],
       inline: true,
     });
-      
-        if (i == (numberOfMatches - 1)) {
-            embedReturnList.push(embed);
-        }
+
+    if (i == numberOfMatches - 1) {
+      embedReturnList.push(embed);
+    }
   }
 
   return embedReturnList;
@@ -60,7 +62,7 @@ export async function embedFights(apiResponse) {
       iconURL:
         'https://cdn.discordapp.com/avatars/895536293356924979/fc5defd0df0442bd4a2326e552c11899.png?size=32',
     },
-    };
+  };
 
   logServer('going into pagify');
   const embedList = await pagifyFightEmbeds(
@@ -70,4 +72,30 @@ export async function embedFights(apiResponse) {
   );
 
   return embedList;
+}
+
+export async function embedFighterChoice(apiResponse, chosenMatch) {
+  const matchUpData = apiResponse.fights[chosenMatch];
+
+  const embed = new EmbedBuilder().setTitle('Who would you like to bet on?');
+
+  embed.addFields({
+    name: `__${matchUpData.Red.Name}__`,
+    value: matchUpData.Red.Odds,
+    inline: true,
+  });
+
+  embed.addFields({
+    name: '\u200B \u200B \u200B',
+    value: '\u200B \u200B \u200B',
+    inline: true,
+  })
+
+  embed.addFields({
+    name: `__${matchUpData.Blue.Name}__`,
+    value: matchUpData.Blue.Odds,
+    inline: true,
+  });
+
+  return embed;
 }

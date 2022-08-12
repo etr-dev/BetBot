@@ -1,0 +1,1 @@
+export const selectResponseTime = 20000

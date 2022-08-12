@@ -2,7 +2,7 @@ var colors = require('colors/safe');
 var emoji = require('node-emoji');
 colors.enable();
 
-export function logServer(message: string, logEmoji: string = 'computer') {
+export function logServer(message: string, logEmoji: string = 'robot_face') {
   const current = new Date();
   console.log(
     emoji.get(logEmoji) +
@@ -13,7 +13,7 @@ export function logServer(message: string, logEmoji: string = 'computer') {
   );
 }
 
-export function logError(message: string, logEmoji: string = 'no_entry') {
+export function logError(message: string | object, logEmoji: string = 'no_entry') {
   const current = new Date();
   console.log(
     emoji.get(logEmoji) +

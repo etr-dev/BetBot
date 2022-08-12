@@ -9,16 +9,16 @@ config();
 
 
 client.on("messageCreate", async (message) => {
-    logServer('here');
     let msgContent = message.content;
     if (message.content.startsWith(botSymbol)) {
         msgContent = msgContent.substring(1).trim().toLowerCase();
-    }
+  }
+  logServer(`${message.author.username}: ${msgContent}`)
     
     const commandList = msgContent.split(' ');
     const command = commandList[0];
     switch (command) {
-        case "bet":
+      case "bet":
             const wager = Number(commandList[1]);
             await betMenu(message, wager);
             break;
