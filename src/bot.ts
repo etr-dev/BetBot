@@ -1,7 +1,7 @@
 
 import { ChatInputCommandInteraction, Client, GatewayIntentBits } from 'discord.js';
 import { config } from 'dotenv';
-import { betMenu, startBetSaga } from './actions';
+import { startBetSaga } from './actions';
 import { logServer } from './utils';
 import { testingClientId, testingGuildId } from './utils/constants';
 config();

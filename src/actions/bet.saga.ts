@@ -9,7 +9,8 @@ import {
   getModalResponse,
   getSelectOptionInteraction,
 } from '@displayFormatting/index';
-import { betMenu, choiceMessage, matchSelectMenu, wagerModal } from './betMenu';
+import { choiceMessage, matchSelectMenu, wagerModal } from './betMenu';
+import { Wager } from '@classes/index';
 
 export async function startBetSaga(interaction) {
   //------------------------------------------------
@@ -19,8 +20,13 @@ export async function startBetSaga(interaction) {
   await interaction.showModal(modal);
   const modalResponseInteraction: any = await getModalResponse(interaction);
   const wager = modalResponseInteraction.fields.getTextInputValue('wagerInput');
+  const testWagerClass: Wager = new Wager(wager);
+  if (!(await testWagerClass.validate())) {
+    modalResponseInteraction.reply(testWagerClass.generateErrorMessage());
+    return;
+  }
 
-//betMenu(modalResponseInteraction, wager);
+  //betMenu(modalResponseInteraction, wager);
 
   //------------------------------------------------
   //              Temp Message - UFC Api
@@ -35,14 +41,16 @@ export async function startBetSaga(interaction) {
   //------------------------------------------------
   //              Select Match Menu
   //------------------------------------------------
-  const matchSelectionMsg = await modalResponseInteraction.editReply(matchSelectMenu(response));
+  const matchSelectionMsg = await modalResponseInteraction.editReply(
+    matchSelectMenu(response),
+  );
 
   // Get the match selection response
   const selectedInteraction = await getSelectOptionInteraction(
     matchSelectionMsg,
     modalResponseInteraction.user.id,
   );
-    if (!selectedInteraction || selectedInteraction.values[0] === 'Cancel') {
+  if (!selectedInteraction || selectedInteraction.values[0] === 'Cancel') {
     //TODO: Let user know they have cancelled
     return;
   }
@@ -75,5 +83,4 @@ export async function startBetSaga(interaction) {
     embeds: [],
     components: [],
   });
-
 }

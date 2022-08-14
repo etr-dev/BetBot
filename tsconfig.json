@@ -15,7 +15,8 @@
       "@commands/*": ["src/commands/*"],
       "@displayFormatting/*": ["src/displayFormatting/*"],
       "@ufcApi/*": ["src/ufcApi/*"],
-      "@utils/*": ["src/utils/*"]
+      "@utils/*": ["src/utils/*"],
+      "@classes/*": ["src/classes/*"]
     },
     "incremental": true,
     "skipLibCheck": true,
