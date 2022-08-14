@@ -11,11 +11,11 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "start": "ts-node src/bot",
+    "start": "ts-node -r tsconfig-paths/register src/bot",
     "start:dev": "nodemon"
   },
   "dependencies": {
-    "@types/node": "^18.6.4",
+    "@types/node": "^18.7.3",
     "axios": "^0.27.2",
     "colors": "^1.4.0",
     "discord.js": "^14.1.2",
@@ -24,5 +24,8 @@
     "nodemon": "^2.0.19",
     "ts-node": "^10.9.1",
     "typescript": "^4.7.4"
+  },
+  "devDependencies": {
+    "tsconfig-paths": "^4.1.0"
   }
 }

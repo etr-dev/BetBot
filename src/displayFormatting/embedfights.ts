@@ -1,12 +1,12 @@
 import { Colors, Embed, EmbedBuilder, EmbedData } from 'discord.js';
 import { logServer } from '../utils';
 
-async function pagifyFightEmbeds(
+function pagifyFightEmbeds(
   apiResponse,
   matchupList: string[],
   embedTemplate,
-): Promise<EmbedBuilder[]> {
-  let embedReturnList = [];
+): EmbedBuilder[] {
+  let embedReturnList: EmbedBuilder[] = [];
   const numberOfMatches = matchupList.length;
 
   let embed = new EmbedBuilder(embedTemplate);
@@ -49,7 +49,7 @@ async function pagifyFightEmbeds(
   return embedReturnList;
 }
 
-export async function embedFights(apiResponse) {
+export function embedFights(apiResponse): EmbedBuilder[] {
   const matchupList: string[] = Object.keys(apiResponse['fights']);
   const embedTemplate: EmbedData = {
     title: apiResponse['eventTitle'],
@@ -64,8 +64,7 @@ export async function embedFights(apiResponse) {
     },
   };
 
-  logServer('going into pagify');
-  const embedList = await pagifyFightEmbeds(
+  const embedList = pagifyFightEmbeds(
     apiResponse,
     matchupList,
     embedTemplate,
@@ -74,7 +73,7 @@ export async function embedFights(apiResponse) {
   return embedList;
 }
 
-export async function embedFighterChoice(apiResponse, chosenMatch) {
+export function embedFighterChoice(apiResponse, chosenMatch) {
   const matchUpData = apiResponse.fights[chosenMatch];
 
   const embed = new EmbedBuilder().setTitle('Who would you like to bet on?');

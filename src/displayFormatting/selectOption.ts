@@ -2,7 +2,7 @@ import { ComponentType, Message, SelectMenuComponentOptionData, User } from 'dis
 import { selectResponseTime } from '../utils/constants';
 import { logServer } from '../utils';
 
-export async function listToSelectOptions(inputList, includeCancel = false) {
+export function listToSelectOptions(inputList, includeCancel = false) {
   let selectList: SelectMenuComponentOptionData[] = [];
   let count = 1;
   for (let item of inputList) {
@@ -25,11 +25,9 @@ export async function listToSelectOptions(inputList, includeCancel = false) {
   return selectList;
 }
 
-export async function getSelectOptionInteraction(selectMsg: Message, orginalUser: User) {
-  let response = undefined;
-
+export async function getSelectOptionInteraction(selectMsg, originalUserId) {
   const filter = (i) => {
-    return i.user.id === orginalUser.id;
+    return i.user.id === originalUserId;
   };
 
   return selectMsg
@@ -39,6 +37,7 @@ export async function getSelectOptionInteraction(selectMsg: Message, orginalUser
       time: selectResponseTime,
     })
     .then((interaction) => {
+      console.log('CLICKED SELECTION');
         return interaction;
     })
     .catch((err) => {

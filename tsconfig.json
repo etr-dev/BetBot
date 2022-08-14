@@ -11,6 +11,11 @@
     "outDir": "./dist/src",
     "baseUrl": ".",
     "paths": {
+      "@actions/*": ["src/actions/*"],
+      "@commands/*": ["src/commands/*"],
+      "@displayFormatting/*": ["src/displayFormatting/*"],
+      "@ufcApi/*": ["src/ufcApi/*"],
+      "@utils/*": ["src/utils/*"]
     },
     "incremental": true,
     "skipLibCheck": true,
