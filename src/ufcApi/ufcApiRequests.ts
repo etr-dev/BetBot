@@ -15,6 +15,6 @@ export async function getUpcomingFights() {
     })
     .catch(error => {
       console.error(error);
-      return null;
+      return undefined;
     });
 }

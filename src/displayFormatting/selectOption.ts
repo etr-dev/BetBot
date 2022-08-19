@@ -37,7 +37,6 @@ export async function getSelectOptionInteraction(selectMsg, originalUserId) {
       time: selectResponseTime,
     })
     .then((interaction) => {
-      console.log('CLICKED SELECTION');
         return interaction;
     })
     .catch((err) => {

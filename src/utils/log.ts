@@ -18,6 +18,17 @@ export function logError(message: string | object, logEmoji: string = 'no_entry'
   console.log(
     emoji.get(logEmoji) +
       colors.red(' ERROR ') +
+      colors.red(`${current.toLocaleTimeString()}`) +
+      ':\t' +
+      colors.red(`${message}`),
+  );
+}
+
+export function logWarning(message: string | object, logEmoji: string = 'warning') {
+  const current = new Date();
+  console.log(
+    emoji.get(logEmoji) +
+      colors.yellow('  WARNING ') +
       colors.yellow(`${current.toLocaleTimeString()}`) +
       ':\t' +
       colors.yellow(`${message}`),

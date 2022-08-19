@@ -2,7 +2,7 @@
 import { ChatInputCommandInteraction, Client, GatewayIntentBits } from 'discord.js';
 import { config } from 'dotenv';
 import { startBetSaga } from './actions';
-import { logServer } from './utils';
+import { logError, logServer, logWarning } from './utils';
 import { testingClientId, testingGuildId } from './utils/constants';
 config();
 
@@ -48,34 +48,9 @@ client.on('interactionCreate', async (interaction) => {
 			break;
 	}
 });
-// client.on("messageCreate", async (message) => {
-//     let msgContent = message.content;
-//     if (message.content.startsWith(botSymbol)) {
-//         msgContent = msgContent.substring(1).trim().toLowerCase();
-//   }
-//   logServer(`${message.author.username}: ${msgContent}`)
-
-//   const guild = client.guilds.cache.get(testingGuildId);
-//   let slashCommands;
-//   slashCommands = guild ? guild.commands : client.application?.commands
-//   slashCommands?.create(name: 'pog', description: 'gers');
-
-//     const commandList = msgContent.split(' ');
-//     const command = commandList[0];
-//     switch (command) {
-//       case "bet":
-//             const wager = Number(commandList[1]);
-//             await betMenu(message, wager);
-//             break;
-//         case "menu":
-//             logServer('menu');
-//             break;
-//     }
-    
-//   });
 
 client.on('ready', () => {
-  logServer(`Logged in as ${client.user.tag}`);
+	logServer(`Logged in as ${client.user.tag}`);
 });
 
 client.login(process.env.DISCORD_TOKEN);

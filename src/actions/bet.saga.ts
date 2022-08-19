@@ -11,6 +11,7 @@ import {
 } from '@displayFormatting/index';
 import { choiceMessage, matchSelectMenu, wagerModal } from './betMenu';
 import { Wager } from '@classes/index';
+import { logError } from '@utils/log';
 
 export async function startBetSaga(interaction) {
   //------------------------------------------------
@@ -20,13 +21,11 @@ export async function startBetSaga(interaction) {
   await interaction.showModal(modal);
   const modalResponseInteraction: any = await getModalResponse(interaction);
   const wager = modalResponseInteraction.fields.getTextInputValue('wagerInput');
-  const testWagerClass: Wager = new Wager(wager);
-  if (!(await testWagerClass.validate())) {
-    modalResponseInteraction.reply(testWagerClass.generateErrorMessage());
+  const wagerClass: Wager = new Wager(wager);
+  if (!(await wagerClass.validate())) {
+    modalResponseInteraction.reply(wagerClass.generateErrorMessage());
     return;
   }
-
-  //betMenu(modalResponseInteraction, wager);
 
   //------------------------------------------------
   //              Temp Message - UFC Api
@@ -36,7 +35,11 @@ export async function startBetSaga(interaction) {
     ephemeral: true,
   });
   const response = await getUpcomingFights();
-  if (!response) return;
+  if (!response) {
+    modalResponseInteraction.editReply('Error retrieving data, try again. This can be caused by the API being asleep.');
+    logError('NO API RESPONSE, is server running?');
+    return;
+  }
 
   //------------------------------------------------
   //              Select Match Menu
@@ -68,7 +71,6 @@ export async function startBetSaga(interaction) {
     modalResponseInteraction.user.id,
   );
 
-  console.log(buttonInteraction.customId);
   if (!buttonInteraction || buttonInteraction.customId === 'Cancel') {
     //TODO: Let user know they have cancelled
     return;

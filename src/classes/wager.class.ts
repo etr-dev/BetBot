@@ -28,11 +28,11 @@ export default class Wager {
 
   //TODO: Add a user to this class so we can check their wallet in DB
   constructor(strWager: string) {
-    this.wager = Number(strWager);
+    this.amount = Number(strWager);
   }
 
   @IsInt()
   @Min(0)
   //TODO: Add a Max() check that is the clients wallet amount
-  wager: number;
+  amount: number;
 }
