@@ -1,11 +1,48 @@
 import { embedErrors } from '@displayFormatting/errors.embed';
-import { IsInt, Min, validate, ValidationError } from 'class-validator';
+import {
+  Contains,
+  contains,
+  IsInt,
+  IsNumber,
+  IsPositive,
+  IsString,
+  Max,
+  Min,
+  Validate,
+  validate,
+  ValidationArguments,
+  ValidationError,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+} from 'class-validator';
+
+@ValidatorConstraint({ name: 'isLessThanWalletAmount', async: false })
+class IsLessThanWalletAmount implements ValidatorConstraintInterface {
+  validate(amount: number, args: ValidationArguments) {
+    console.log(args);
+    // @ts-ignore
+    return amount <= args.object.walletAmount;
+  }
+
+  defaultMessage(args: ValidationArguments) {
+    // @ts-ignore
+    return `Wager exceeds your wallet amount: $${args.object.walletAmount}`;
+  }
+}
 
 export default class Wager {
   public isValid: boolean;
   private errors: ValidationError[] = [];
+  private walletAmount: number = 0;
+
+  //TODO: Add a user to this class so we can check their wallet in DB
+  constructor(strWager: string, userWalletAmount: number) {
+    this.amount = Number(strWager);
+    this.walletAmount = userWalletAmount;
+  }
+
   async validate(): Promise<Boolean> {
-    await validate(this).then((errors) => {
+    await validate(this, { skipMissingProperties: true }).then((errors) => {
       // errors is an array of validation errors
       if (errors.length > 0) {
         this.isValid = false;
@@ -26,13 +63,35 @@ export default class Wager {
     };
   }
 
-  //TODO: Add a user to this class so we can check their wallet in DB
-  constructor(strWager: string) {
-    this.amount = Number(strWager);
+  calculateWagerDetails(odds: string) {
+    this.wagerOdds = odds;
+    const oddsNumber = Number(odds);
+
+    this.amountToWin =
+      oddsNumber > 0
+        ? (this.amount / 100) * oddsNumber
+        : -(this.amount / oddsNumber) * 100;
+
+    this.amountToPayout = this.amountToWin + this.amount;
+
+    this.amountToWin = Number(this.amountToWin.toFixed(2));
+    this.amountToPayout = Number(this.amountToPayout.toFixed(2));
   }
 
-  @IsInt()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Validate(IsLessThanWalletAmount)
   @Min(0)
-  //TODO: Add a Max() check that is the clients wallet amount
+  @IsPositive()
   amount: number;
+
+  @IsString()
+  wagerOdds: string;
+
+  @IsPositive()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  amountToWin: number;
+
+  @IsPositive()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  amountToPayout: number;
 }

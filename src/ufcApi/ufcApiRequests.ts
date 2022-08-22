@@ -2,19 +2,48 @@ import axios from "axios";
 import { config } from "dotenv";
 
 config();
-axios.defaults.headers.common = {
+const headers = {
   'X-API-KEY': process.env.UFC_API_KEY,
+  'Content-Type': 'application/json',
 }
-const url = process.env.UFC_API_URL ? process.env.UFC_API_URL : 'http://localhost:8080';
+
+const url =
+  process.env.IS_LOCAL === 'true'
+    ? process.env.UFC_API_URL_LOCAL
+    : process.env.UFC_API_URL_PROD;
 
 export async function getUpcomingFights() {
-    return await axios
-    .get(`${url}/ufc/nextEvent`)
-    .then(res => {
-      return res.data.data;
-    })
-    .catch(error => {
-      console.error(error);
-      return undefined;
-    });
+  var config = {
+    method: 'get',
+    url: `${url}/ufc/nextEvent`,
+    headers,
+  };
+  
+  return axios(config)
+  .then(function (response) {
+    return response.data.data;
+  })
+  .catch(function (error) {
+    console.log(error);
+    return null;
+  });
+}
+
+export async function getEventByUrl(eventUrl: string) {
+  console.log(eventUrl);
+  var config = {
+    method: 'get',
+    url: `${url}/ufc/eventByUrl`,
+    params: {url: eventUrl},
+    headers,
+  };
+  
+  return axios(config)
+  .then(function (response) {
+    return response.data.data;
+  })
+  .catch(function (error) {
+    console.log(error);
+    return null;
+  });
 }

@@ -13,7 +13,7 @@ export async function getModalResponse(modalInteraction): Promise<ModalSubmitInt
       return interaction;
     })
     .catch((err) => {
-      logError(err);
-      return undefined;
+      // logError(err);
+      return null;
     });
 }

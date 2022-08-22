@@ -2,6 +2,8 @@
 import { ChatInputCommandInteraction, Client, GatewayIntentBits } from 'discord.js';
 import { config } from 'dotenv';
 import { startBetSaga } from './actions';
+import { getUserWalletId } from './backendApi';
+import { CreateUserDto } from './dtos/createUser.dto';
 import { logError, logServer, logWarning } from './utils';
 import { testingClientId, testingGuildId } from './utils/constants';
 config();
