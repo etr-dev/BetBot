@@ -3,19 +3,21 @@ import {
   ComponentType,
   MessagePayload,
 } from 'discord.js';
-import { getEventByUrl, getUpcomingFights } from '@ufcApi/index';
 import {
   getButtonInteraction,
   getModalResponse,
   getSelectOptionInteraction,
 } from '@displayFormatting/index';
 import { choiceMessage, matchSelectMenu, wagerModal } from './betMenu';
-import { Wager } from '@classes/index';
 import { logError } from '@utils/log';
 import { CreateUserDto } from 'src/dtos/createUser.dto';
-import { createMatch, getUserWalletId, getWallet, placeBet } from 'src/backendApi';
+import {
+  getEventByUrl, getUpcomingFights,
+  createMatch, getUserWalletId, getWallet, placeBet
+} from '@apis';
 import { match } from 'assert';
 import { PlaceBetDto } from 'src/dtos/placeBet.dto';
+import { Wager } from '@classes';
 
 export async function startBetSaga(interaction) {
   //------------------------------------------------

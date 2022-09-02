@@ -15,22 +15,10 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
+import { IsLessThanWalletAmount } from './validators/custom.validators';
 
-@ValidatorConstraint({ name: 'isLessThanWalletAmount', async: false })
-class IsLessThanWalletAmount implements ValidatorConstraintInterface {
-  validate(amount: number, args: ValidationArguments) {
-    console.log(args);
-    // @ts-ignore
-    return amount <= args.object.walletAmount;
-  }
 
-  defaultMessage(args: ValidationArguments) {
-    // @ts-ignore
-    return `Wager exceeds your wallet amount: $${args.object.walletAmount}`;
-  }
-}
-
-export default class Wager {
+export class Wager {
   public isValid: boolean;
   private errors: ValidationError[] = [];
   private walletAmount: number = 0;

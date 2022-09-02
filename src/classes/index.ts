@@ -1,3 +1,2 @@
-import Wager from "./wager.class";
-
-export { Wager };
+export * from './wager.class';
+export * from './validators';

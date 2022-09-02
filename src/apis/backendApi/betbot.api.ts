@@ -20,6 +20,22 @@ const url =
     ? process.env.BETBOT_BACKEND_URL_LOCAL
     : process.env.BETBOT_BACKEND_URL_PROD;
 
+    export async function databaseHealth(){
+      var config = {
+        method: 'get',
+        url: `${url}`,
+        headers,
+      };
+      
+      return axios(config)
+        .then(function (response) {
+        return response.data;
+      })
+        .catch(function (error) {
+        return null;
+      });
+}
+    
 export async function getUserWalletId(createUserDto: CreateUserDto): Promise<CreateUserResponse> {
   var data = JSON.stringify(createUserDto);
   

@@ -1,30 +1,17 @@
 import {
   ActionRowBuilder,
   ButtonBuilder,
-  Collector,
-  ComponentType,
-  DiscordAPIError,
   EmbedBuilder,
-  Message,
-  MessageCollector,
-  MessagePayload,
   ModalBuilder,
   SelectMenuBuilder,
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
 import {
-  getSelectOptionInteraction,
   listToSelectOptions,
   embedFighterChoice,
   embedFights,
-  getButtonInteraction,
 } from '@displayFormatting/index';
-import { getUpcomingFights } from '@ufcApi/index';
-import { client } from 'src/bot';
-import { match } from 'assert';
-import { logError, logServer } from '@utils/index';
-import { MessageOptions } from 'child_process';
 
 export let wagerModal = () => {
   // Create the modal
