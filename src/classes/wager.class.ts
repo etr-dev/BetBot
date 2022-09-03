@@ -30,7 +30,7 @@ export class Wager {
   }
 
   async validate(): Promise<Boolean> {
-    await validate(this, { skipMissingProperties: true }).then((errors) => {
+    await validate(this, { skipMissingProperties: true, stopAtFirstError: true }).then((errors) => {
       // errors is an array of validation errors
       if (errors.length > 0) {
         this.isValid = false;
@@ -66,10 +66,10 @@ export class Wager {
     this.amountToPayout = Number(this.amountToPayout.toFixed(2));
   }
 
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Validate(IsLessThanWalletAmount)
-  @Min(0)
+  @IsLessThanWalletAmount()
+  @Min(1)
   @IsPositive()
+  @IsNumber({ maxDecimalPlaces: 2 })
   amount: number;
 
   @IsString()

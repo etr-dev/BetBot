@@ -12,6 +12,7 @@ import {
   embedFighterChoice,
   embedFights,
 } from '@displayFormatting/index';
+import { UfcEventResponse } from 'src/apis/ufcApi/responses/ufcEvent.response';
 
 export let wagerModal = () => {
   // Create the modal
@@ -33,9 +34,9 @@ const firstActionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(wa
   return modal;
 }
   
-export const matchSelectMenu = (ufcApiResponse) => {
-  const matchupList: string[] = Object.keys(ufcApiResponse['fights']);
-  const embedList: EmbedBuilder[] = embedFights(ufcApiResponse);
+export const matchSelectMenu = (ufcEventResponse: UfcEventResponse) => {
+  const matchupList: string[] = Object.keys(ufcEventResponse.fights);
+  const embedList: EmbedBuilder[] = embedFights(ufcEventResponse);
   let matchSelector = new ActionRowBuilder().addComponents(
     new SelectMenuBuilder()
       .setCustomId('select')
@@ -52,13 +53,13 @@ export const matchSelectMenu = (ufcApiResponse) => {
 
 }
 
-export const choiceMessage = (ufcApiResponse, selectedMatch) => {
-  const { Red, Blue } = ufcApiResponse.fights[selectedMatch];
-  const embed = embedFighterChoice(ufcApiResponse, selectedMatch);
+export const choiceMessage = (ufcEventResponse: UfcEventResponse, selectedMatch) => {
+  const { Red, Blue } = ufcEventResponse.fights[selectedMatch];
+  const embed = embedFighterChoice(ufcEventResponse, selectedMatch);
   let fighterButtons = new ActionRowBuilder()
       .addComponents(
-          new ButtonBuilder().setCustomId('Red').setStyle(4).setLabel(Red.Name),
-          new ButtonBuilder().setCustomId('Blue').setStyle(1).setLabel(Blue.Name),
+          new ButtonBuilder().setCustomId('Red').setStyle(4).setLabel(Red.name),
+          new ButtonBuilder().setCustomId('Blue').setStyle(1).setLabel(Blue.name),
           new ButtonBuilder().setCustomId('Cancel').setStyle(2).setLabel('Cancel').setEmoji('🚫'),
   );
   return {

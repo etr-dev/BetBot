@@ -46,7 +46,7 @@ export async function getUpcomingFights(): Promise<UfcEventResponse> {
     });
 }
 
-export async function getEventByUrl(eventUrl: string) {
+export async function getEventByUrl(eventUrl: string): Promise<UfcEventResponse> {
   console.log(eventUrl);
   var config = {
     method: 'get',

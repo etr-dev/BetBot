@@ -1,8 +1,9 @@
 import { Colors, Embed, EmbedBuilder, EmbedData } from 'discord.js';
+import { UfcEventResponse } from 'src/apis/ufcApi/responses/ufcEvent.response';
 import { logServer } from '../utils';
 
 function pagifyFightEmbeds(
-  apiResponse,
+  apiResponse: UfcEventResponse,
   matchupList: string[],
   embedTemplate,
 ): EmbedBuilder[] {
@@ -24,20 +25,20 @@ function pagifyFightEmbeds(
       });
     }
 
-    const { Red, Blue } = apiResponse['fights'][matchupList[i]];
+    const { Red, Blue } = apiResponse.fights[matchupList[i]];
     embed.addFields({
       name: `**${i + 1}**`,
       value: '\u200B',
       inline: true,
     });
     embed.addFields({
-      name: `__${Red['name']}__`,
-      value: Red['odds'],
+      name: `__${Red.name}__`,
+      value: Red.odds,
       inline: true,
     });
     embed.addFields({
-      name: `__${Blue['name']}__`,
-      value: Blue['odds'],
+      name: `__${Blue.name}__`,
+      value: Blue.odds,
       inline: true,
     });
 
@@ -49,14 +50,14 @@ function pagifyFightEmbeds(
   return embedReturnList;
 }
 
-export function embedFights(apiResponse): EmbedBuilder[] {
-  const matchupList: string[] = Object.keys(apiResponse['fights']);
+export function embedFights(apiResponse: UfcEventResponse): EmbedBuilder[] {
+  const matchupList: string[] = Object.keys(apiResponse.fights);
   const embedTemplate: EmbedData = {
-    title: apiResponse['eventTitle'],
-    description: apiResponse['date'],
-    url: apiResponse['url'],
+    title: apiResponse.eventTitle,
+    description: apiResponse.date,
+    url: apiResponse.url,
     color: Colors.Green,
-    thumbnail: { url: apiResponse['image'] },
+    thumbnail: { url: apiResponse.image },
     author: {
       name: 'BetBot',
       iconURL:
@@ -73,14 +74,14 @@ export function embedFights(apiResponse): EmbedBuilder[] {
   return embedList;
 }
 
-export function embedFighterChoice(apiResponse, chosenMatch) {
+export function embedFighterChoice(apiResponse: UfcEventResponse, chosenMatch) {
   const matchUpData = apiResponse.fights[chosenMatch];
 
   const embed = new EmbedBuilder().setTitle('Who would you like to bet on?');
 
   embed.addFields({
-    name: `__${matchUpData.Red.Name}__`,
-    value: matchUpData.Red.Odds,
+    name: `__${matchUpData.Red.name}__`,
+    value: matchUpData.Red.odds,
     inline: true,
   });
 
@@ -91,8 +92,8 @@ export function embedFighterChoice(apiResponse, chosenMatch) {
   })
 
   embed.addFields({
-    name: `__${matchUpData.Blue.Name}__`,
-    value: matchUpData.Blue.Odds,
+    name: `__${matchUpData.Blue.name}__`,
+    value: matchUpData.Blue.odds,
     inline: true,
   });
 
