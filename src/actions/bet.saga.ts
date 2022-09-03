@@ -10,22 +10,23 @@ import {
 } from '@displayFormatting/index';
 import { choiceMessage, matchSelectMenu, wagerModal } from './betMenu';
 import { logError } from '@utils/log';
-import { CreateUserDto } from 'src/dtos/createUser.dto';
 import {
   getEventByUrl, getUpcomingFights,
   createMatch, getUserWalletId, getWallet, placeBet
 } from '@apis';
 import { match } from 'assert';
-import { PlaceBetDto } from 'src/dtos/placeBet.dto';
 import { Wager } from '@classes';
-import { UfcApiResponse, UfcEventResponse } from 'src/apis/ufcApi/responses/ufcEvent.response';
+import { UfcEventResponse } from 'src/apis/ufcApi/responses/ufcEvent.response';
+import { CreateUserRequest } from 'src/apis/backendApi/requests/createUser.request';
+import { PlaceBetRequest } from 'src/apis/backendApi/requests/placeBet.request';
+import { CreateMatchRequest } from 'src/apis/backendApi/requests/createMatch.request';
 
 export async function startBetSaga(interaction) {
   //------------------------------------------------
   //              Wager Modal
   //------------------------------------------------
-  const createUserDto = new CreateUserDto(interaction);
-  const walletRes = await getUserWalletId(createUserDto);
+  const createUserRequest = new CreateUserRequest(interaction);
+  const walletRes = await getUserWalletId(createUserRequest);
   if (!walletRes) {
     interaction.reply('Error finding your wallet.');
   }
@@ -125,13 +126,13 @@ export async function startBetSaga(interaction) {
     );
   }
 
-  if (validateUfcBetApiResponse.fights[selectedMatch].details.round) {
+  if (validateUfcBetApiResponse.fights[selectedMatch].details.isComplete) {
     modalResponseInteraction.editReply(
       'The match is already over.',
     );
   }
 
-  const matchRes = await createMatch({eventTitle: validateUfcBetApiResponse.eventTitle, matchTitle: selectedMatch, link: validateUfcBetApiResponse.url});
+  const matchRes = await createMatch(new CreateMatchRequest(ufcEventResponse, selectedMatch));
   if (!matchRes) {
     modalResponseInteraction.editReply(
       'The match failed to post, report this error.',
@@ -143,7 +144,7 @@ export async function startBetSaga(interaction) {
   wagerClass.calculateWagerDetails(validateUfcBetApiResponse.fights[selectedMatch][selectedCorner].odds);
 
   //Place bet
-  const placeBetDto: PlaceBetDto = {
+  const placeBetRequest: PlaceBetRequest = {
     matchId,
     userId: interaction.user.id,
     walletId,
@@ -153,10 +154,10 @@ export async function startBetSaga(interaction) {
     amountToWin: wagerClass.amountToWin,
     amountToPayout: wagerClass.amountToPayout,
   }
-  const betRes = await placeBet(placeBetDto);
+  const betRes = await placeBet(placeBetRequest);
   if (!betRes) {
     modalResponseInteraction.editReply(
-      'The bet failed to place. This can be cause by outdated wallet amounts. Try again.',
+      'The bet failed to place. Try again.',
     );
     return;
   }

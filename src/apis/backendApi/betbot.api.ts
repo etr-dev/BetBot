@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { config } from 'dotenv';
-import { CreateMatchDto } from 'src/dtos/createMatch.dto';
-import { CreateUserDto } from 'src/dtos/createUser.dto';
-import { PlaceBetDto } from 'src/dtos/placeBet.dto';
+import { CreateMatchRequest } from './requests/createMatch.request';
+import { CreateUserRequest } from './requests/createUser.request';
+import { PlaceBetRequest } from './requests/placeBet.request';
 import { CreateMatchResponse } from './responses/createMatch.response';
 import { CreateUserResponse } from './responses/createUser.response';
 import { GetWalletResponse } from './responses/getWallet.response';
@@ -36,8 +36,8 @@ const url =
       });
 }
     
-export async function getUserWalletId(createUserDto: CreateUserDto): Promise<CreateUserResponse> {
-  var data = JSON.stringify(createUserDto);
+export async function getUserWalletId(createUserRequest: CreateUserRequest): Promise<CreateUserResponse> {
+  var data = JSON.stringify(createUserRequest);
   
   var config = {
     method: 'post',
@@ -51,7 +51,7 @@ export async function getUserWalletId(createUserDto: CreateUserDto): Promise<Cre
     return response.data;
   })
   .catch(function (error) {
-    console.log(error);
+    console.log(error.response.data);
     return null;
   });
 }
@@ -71,13 +71,13 @@ export async function getWallet(walletId: string): Promise<GetWalletResponse> {
     return response.data;
   })
   .catch(function (error) {
-    console.log(error);
+    console.log(error.response.data);
     return null;
   });
 }
 
-export async function createMatch(createMatchDto: CreateMatchDto): Promise<CreateMatchResponse> {
-  var data = JSON.stringify(createMatchDto);
+export async function createMatch(createMatchRequest: CreateMatchRequest): Promise<CreateMatchResponse> {
+  var data = JSON.stringify(createMatchRequest);
   
   var config = {
     method: 'post',
@@ -91,13 +91,13 @@ export async function createMatch(createMatchDto: CreateMatchDto): Promise<Creat
     return response.data;
   })
   .catch(function (error) {
-    console.log(error);
+    console.log(error.response.data);
     return null;
   });
 }
 
-export async function placeBet(placeBetDto: PlaceBetDto): Promise<PlaceBetResponse> {
-  var data = JSON.stringify(placeBetDto);
+export async function placeBet(placeBetRequest: PlaceBetRequest): Promise<PlaceBetResponse> {
+  var data = JSON.stringify(placeBetRequest);
   
   var config = {
     method: 'post',
@@ -111,7 +111,7 @@ export async function placeBet(placeBetDto: PlaceBetDto): Promise<PlaceBetRespon
     return response.data;
   })
   .catch(function (error) {
-    console.log(error);
+    console.log(error.response.data);
     return null;
   });
 }
