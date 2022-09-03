@@ -31,13 +31,13 @@ function pagifyFightEmbeds(
       inline: true,
     });
     embed.addFields({
-      name: `__${Red['Name']}__`,
-      value: Red['Odds'],
+      name: `__${Red['name']}__`,
+      value: Red['odds'],
       inline: true,
     });
     embed.addFields({
-      name: `__${Blue['Name']}__`,
-      value: Blue['Odds'],
+      name: `__${Blue['name']}__`,
+      value: Blue['odds'],
       inline: true,
     });
 

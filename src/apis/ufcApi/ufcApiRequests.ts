@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { config } from 'dotenv';
+import { UfcApiResponse, UfcEventResponse } from './responses/ufcEvent.response';
 
 config();
 const headers = {
@@ -28,7 +29,7 @@ export async function ufcApiHealth() {
     });
 }
 
-export async function getUpcomingFights() {
+export async function getUpcomingFights(): Promise<UfcEventResponse> {
   var config = {
     method: 'get',
     url: `${url}/ufc/nextEvent`,
