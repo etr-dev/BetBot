@@ -16,7 +16,8 @@
       "@displayFormatting/*": ["src/displayFormatting/*"],
       "@utils/*": ["src/utils/*"],
       "@classes": ["src/classes"],
-      "@apis": ["src/apis"]
+      "@apis": ["src/apis"],
+      "@displayFormatting": ["src/displayFormatting"]
     },
     "incremental": true,
     "skipLibCheck": true,

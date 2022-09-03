@@ -2,7 +2,7 @@ import { ValidationError } from 'class-validator';
 import { Colors, Embed, EmbedBuilder, EmbedData } from 'discord.js';
 
 export function embedErrors(error: ValidationError) {
-  const embed = new EmbedBuilder().setTitle('Validation Checks Failed.');
+  const embed = new EmbedBuilder().setTitle('❌ Validation Checks Failed.');
 
     const constraints = Object.keys(error.constraints);
     for (let constraint of constraints) {

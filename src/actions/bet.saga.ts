@@ -3,16 +3,15 @@ import {
   ComponentType,
   MessagePayload,
 } from 'discord.js';
-import {
-  getButtonInteraction,
-  getModalResponse,
-  getSelectOptionInteraction,
-} from '@displayFormatting/index';
 import { choiceMessage, matchSelectMenu, wagerModal } from './betMenu';
 import { logError } from '@utils/log';
 import {
-  getEventByUrl, getUpcomingFights,
-  createMatch, getUserWalletId, getWallet, placeBet
+  getEventByUrl,
+  getUpcomingFights,
+  createMatch,
+  getUserWalletId,
+  getWallet,
+  placeBet,
 } from '@apis';
 import { match } from 'assert';
 import { Wager } from '@classes';
@@ -20,8 +19,15 @@ import { UfcEventResponse } from 'src/apis/ufcApi/responses/ufcEvent.response';
 import { CreateUserRequest } from 'src/apis/backendApi/requests/createUser.request';
 import { PlaceBetRequest } from 'src/apis/backendApi/requests/placeBet.request';
 import { CreateMatchRequest } from 'src/apis/backendApi/requests/createMatch.request';
-import { embedSelectedFighter } from '@displayFormatting/fighterCard.embed';
 import { sleep } from '@utils/functions';
+import {
+  getButtonInteraction,
+  getModalResponse,
+  getSelectOptionInteraction,                          
+  embedSelectedFighter,
+  embedValidationMessage,
+  embedWaitMessage,
+} from '@displayFormatting';
 
 export async function startBetSaga(interaction) {
   //------------------------------------------------
@@ -42,7 +48,7 @@ export async function startBetSaga(interaction) {
   await interaction.showModal(modal);
   const modalResponseInteraction: any = await getModalResponse(interaction);
   if (!modalResponseInteraction) {
-    interaction.followUp({ content: 'Modal timed out!', ephemeral: true });
+    // interaction.followUp({ content: 'Modal timed out!', ephemeral: true });
     return;
   }
   const wager = modalResponseInteraction.fields.getTextInputValue('wagerInput');
@@ -56,7 +62,8 @@ export async function startBetSaga(interaction) {
   //              Temp Message - UFC Api
   //------------------------------------------------
   let tempMsg = await modalResponseInteraction.reply({
-    content: 'Retrieving data please wait...',
+    content: '',
+    embeds: [embedWaitMessage()],
     ephemeral: true,
   });
   const ufcEventResponse = await getUpcomingFights();
@@ -108,12 +115,14 @@ export async function startBetSaga(interaction) {
   //              Validate Wager, Fight, etc.
   //------------------------------------------------
   let placingBetMessage = await modalResponseInteraction.editReply({
-    content: 'Validating and Placing Bet...',
-    embeds: [],
+    content: '',
+    embeds: [embedValidationMessage()],
     components: [],
     ephemeral: true,
   });
-  const validateUfcBetApiResponse: UfcEventResponse = await getEventByUrl(ufcEventResponse.url);
+  const validateUfcBetApiResponse: UfcEventResponse = await getEventByUrl(
+    ufcEventResponse.url,
+  );
   if (!validateUfcBetApiResponse) {
     modalResponseInteraction.editReply(
       'Error validating UFC Event, try again.',
@@ -123,18 +132,20 @@ export async function startBetSaga(interaction) {
   }
 
   if (validateUfcBetApiResponse.fights[selectedMatch].details.isLive) {
-    modalResponseInteraction.editReply(
-      'The match is already live.',
-    );
+    modalResponseInteraction.editReply('The match is already live.');
   }
 
   if (validateUfcBetApiResponse.fights[selectedMatch].details.isComplete) {
-    modalResponseInteraction.editReply(
-      'The match is already over.',
-    );
+    modalResponseInteraction.editReply('The match is already over.');
   }
 
-  const createMatchRequest = new CreateMatchRequest(ufcEventResponse, selectedMatch);
+  //------------------------------------------------
+  //              Store In Database
+  //------------------------------------------------
+  const createMatchRequest = new CreateMatchRequest(
+    ufcEventResponse,
+    selectedMatch,
+  );
   const matchRes = await createMatch(createMatchRequest);
   if (!matchRes) {
     modalResponseInteraction.editReply(
@@ -144,7 +155,9 @@ export async function startBetSaga(interaction) {
   }
   const { matchId } = matchRes;
 
-  wagerClass.calculateWagerDetails(validateUfcBetApiResponse.fights[selectedMatch][selectedCorner].odds);
+  wagerClass.calculateWagerDetails(
+    validateUfcBetApiResponse.fights[selectedMatch][selectedCorner].odds,
+  );
 
   //Place bet
   const placeBetRequest: PlaceBetRequest = {
@@ -156,18 +169,12 @@ export async function startBetSaga(interaction) {
     wagerAmount: wagerClass.amount,
     amountToWin: wagerClass.amountToWin,
     amountToPayout: wagerClass.amountToPayout,
-  }
+  };
   const betRes = await placeBet(placeBetRequest);
   if (!betRes) {
-    modalResponseInteraction.editReply(
-      'The bet failed to place. Try again.',
-    );
+    modalResponseInteraction.editReply('The bet failed to place. Try again.');
     return;
   }
-
-  //------------------------------------------------
-  //              Store In Database
-  //------------------------------------------------
 
   //------------------------------------------------
   //              Respond to User
