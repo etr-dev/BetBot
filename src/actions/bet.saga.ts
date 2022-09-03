@@ -20,6 +20,8 @@ import { UfcEventResponse } from 'src/apis/ufcApi/responses/ufcEvent.response';
 import { CreateUserRequest } from 'src/apis/backendApi/requests/createUser.request';
 import { PlaceBetRequest } from 'src/apis/backendApi/requests/placeBet.request';
 import { CreateMatchRequest } from 'src/apis/backendApi/requests/createMatch.request';
+import { embedSelectedFighter } from '@displayFormatting/fighterCard.embed';
+import { sleep } from '@utils/functions';
 
 export async function startBetSaga(interaction) {
   //------------------------------------------------
@@ -132,7 +134,8 @@ export async function startBetSaga(interaction) {
     );
   }
 
-  const matchRes = await createMatch(new CreateMatchRequest(ufcEventResponse, selectedMatch));
+  const createMatchRequest = new CreateMatchRequest(ufcEventResponse, selectedMatch);
+  const matchRes = await createMatch(createMatchRequest);
   if (!matchRes) {
     modalResponseInteraction.editReply(
       'The match failed to post, report this error.',
@@ -170,8 +173,8 @@ export async function startBetSaga(interaction) {
   //              Respond to User
   //------------------------------------------------
   modalResponseInteraction.editReply({
-    content: `You have selected ${buttonInteraction.customId}`,
-    embeds: [],
+    content: 'Bet Placed!',
+    embeds: [embedSelectedFighter(createMatchRequest, placeBetRequest)],
     components: [],
   });
 }
