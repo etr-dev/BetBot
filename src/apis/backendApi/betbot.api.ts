@@ -1,8 +1,10 @@
 import axios from 'axios';
 import { config } from 'dotenv';
+import { GetUsersBetsRequest } from './requests';
 import { CreateMatchRequest } from './requests/createMatch.request';
 import { CreateUserRequest } from './requests/createUser.request';
 import { PlaceBetRequest } from './requests/placeBet.request';
+import { GetUsersResponse } from './responses';
 import { CreateMatchResponse } from './responses/createMatch.response';
 import { CreateUserResponse } from './responses/createUser.response';
 import { GetWalletResponse } from './responses/getWallet.response';
@@ -116,8 +118,22 @@ export async function placeBet(placeBetRequest: PlaceBetRequest): Promise<PlaceB
   });
 }
 
-
-// axios.defaults.headers.common = {
-//   'X-API-KEY': process.env.BETBOT_BACKEND_KEY,
-//   'Content-Type': 'application/json',
-// };
+export async function getUsersBets(getUsersBetsRequest: GetUsersBetsRequest): Promise<GetUsersResponse> {
+  var data = JSON.stringify(getUsersBetsRequest);
+  
+  var config = {
+    method: 'get',
+    url: `${url}/betbot/getUsersBets`,
+    headers,
+    data,
+  };
+  
+  return axios(config)
+  .then(function (response) {
+    return response.data;
+  })
+  .catch(function (error) {
+    console.log(error.response.data);
+    return null;
+  });
+}

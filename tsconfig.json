@@ -11,7 +11,7 @@
     "outDir": "./dist/src",
     "baseUrl": ".",
     "paths": {
-      "@actions/*": ["src/actions/*"],
+      "@actions": ["src/actions"],
       "@commands/*": ["src/commands/*"],
       "@displayFormatting/*": ["src/displayFormatting/*"],
       "@utils/*": ["src/utils/*"],

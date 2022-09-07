@@ -1,5 +1,5 @@
 import { UfcEventResponse } from 'src/apis/ufcApi/responses/ufcEvent.response';
-import { ICornerDetails } from './nested/cornerDetails.request';
+import { ICornerDetails } from '../interfaces/cornerDetails.interface';
 
 export class CreateMatchRequest {
   constructor(ufcEvent: UfcEventResponse, selectedMatch: string) {
