@@ -4,10 +4,11 @@ import {
   GatewayIntentBits,
 } from 'discord.js';
 import { config } from 'dotenv';
-import { startBetSaga, startHistorySaga } from '@actions';
+import { checkMatches, startBetSaga, startHistorySaga } from '@actions';
 import { healthCheck } from './apis/healthCheck.api';
 import { logError, logServer, logWarning } from './utils';
 import { testingClientId, testingGuildId } from './utils/constants';
+import { sleep } from '@utils/functions';
 config();
 
 // Command Code
@@ -69,8 +70,12 @@ client.on('ready', async () => {
   let health = false;
   while (!health) {
     health = await healthCheck();
-    await new Promise((r) => setTimeout(r, 20000));
+    if (!health) {
+      await sleep(1000 * 20);
+    }
   }
+  await checkMatches();
+  let interval = setInterval(checkMatches, 1000 * 60 * 1); // 1000 * 60 seconds * 15 minutes
   logServer(`Logged in as ${client.user.tag}`);
 });
 

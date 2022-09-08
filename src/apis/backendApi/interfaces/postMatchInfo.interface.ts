@@ -5,6 +5,6 @@ export interface IPostMatchInfo {
     method: string;
     time: string;
     round: number;
-    Red: Partial<ICornerDetails> & Pick<ICornerDetails, 'name' | 'image' | 'outcome'>;
-    Blue: Partial<ICornerDetails> & Pick<ICornerDetails, 'name' | 'image' | 'outcome'>;
+    Red: Partial<ICornerDetails> & Pick<ICornerDetails, 'name' | 'odds' | 'outcome'>;
+    Blue: Partial<ICornerDetails> & Pick<ICornerDetails, 'name' | 'odds' | 'outcome'>;
 }

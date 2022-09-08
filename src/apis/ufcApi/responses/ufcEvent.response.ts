@@ -1,38 +1,39 @@
 export interface UfcApiResponse {
-    message: string;
-    data: UfcEventResponse;
+  message: string;
+  data: UfcEventResponse;
 }
-  
+
 export interface UfcEventResponse {
-    eventTitle: string;
-    url: string;
-    date: string;
-    image: string;
-    fights: MatchListResponse;
+  eventTitle: string;
+  url: string;
+  date: string;
+  image: string;
+  fights: MatchListResponse;
 }
 
 export interface MatchListResponse {
-    [key: string]: UfcMatchResponse
+  [key: string]: UfcMatchResponse;
 }
 
 export interface UfcMatchResponse {
-    details: DetailsResponse;
-    Red: FighterResponse;
-    Blue: FighterResponse;
+  details: DetailsResponse;
+  Red: FighterResponse;
+  Blue: FighterResponse;
 }
 
 export interface DetailsResponse {
-    link: string;
-    isLive: boolean;
-    isComplete: boolean;
-    method: string;
-    round: number;
-    result: string;
+  link: string;
+  isLive: boolean;
+  isComplete: boolean;
+  method: string;
+  time: string;
+  round: number;
+  result: string;
 }
 
 export interface FighterResponse {
-    name: string;
-    odds: string;
-    outcome: string;
-    image: string;
+  name: string;
+  odds: string;
+  outcome: string;
+  image: string;
 }
