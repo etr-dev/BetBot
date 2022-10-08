@@ -33,7 +33,7 @@
   <h3 align="center">BetBot</h3>
 
   <p align="center">
-    A discord bot for betting on MMA with simulated money!
+    A discord bot for betting on MMA with simulated money! [Switching over to nest.js and mongoDB]
     <br />
     <a href="https://github.com/erobin27/BetBot"><strong>Explore the docs »</strong></a>
     <br />
