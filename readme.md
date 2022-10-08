@@ -7,8 +7,6 @@
 *** Thanks again! Now go create something AMAZING! :D
 -->
 
-
-
 <!-- PROJECT SHIELDS -->
 <!--
 *** I'm using markdown "reference style" links for readability.
@@ -17,6 +15,7 @@
 *** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
+
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
@@ -24,13 +23,11 @@
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
-
-
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
   <a href="https://github.com/erobin27/BetBot">
-    <img src="/images/BetBotLogo.png" alt="Logo" width="80" height="80">
+    <img src="images/BetBotLogo.png" alt="Logo" width="120" height="120">
   </a>
 
   <h3 align="center">BetBot</h3>
@@ -42,8 +39,6 @@
     <br />
   </p>
 </div>
-
-
 
 <!-- TABLE OF CONTENTS -->
 <details>
@@ -71,59 +66,56 @@
   </ol>
 </details>
 
+<!-- ABOUT THE PROJECT -->
 
+## Preview
+
+Invite BetBot to your server! (BETA): <a href="https://discord.com/api/oauth2/authorize?client_id=895536293356924979&permissions=535260822592&scope=bot"><strong>INVITE</strong></a><br/>
+
+#### View slash commands with /
+
+[![Product Name Screen Shot][product-screenshot]]()
+
+#### /Bet to bet on a fight
+
+[![Product Name Screen Shot][product-screenshot2]]()
+[![Product Name Screen Shot][product-screenshot3]]()
+
+#### /History to view your previous bets
+
+[![Product Name Screen Shot][product-screenshot4]]()
 
 <!-- ABOUT THE PROJECT -->
-## About The Project
-Invite BetBot to your server! (BETA): <a href="https://discord.com/api/oauth2/authorize?client_id=895536293356924979&permissions=535260822592&scope=bot"><strong>INVITE</strong></a><br/>
-[![Product Name Screen Shot][product-screenshot]]()
-[![Product Name Screen Shot][product-screenshot2]]()
 
-This is the very first discord sports betting bot created (That I was able to find)! This has not been done before due to the privitization of sports betting API's. I created my own UFC API `https://github.com/erobin27/UFC-API` that allows me to get data from the UFC website. I then present this data to the user through the discord bot. Users can place bets using their balance. User's balance, wagers, discord id, and past wagers are all stored in a mySQL database.
+## About The Project
+
+This is the very first discord sports betting bot created (That I was able to find)! This has not been done before due to the privitization of sports betting API's. I created my own UFC API `https://github.com/erobin27/UFC-API` that allows me to get data from the UFC website. I then present this data to the user through the discord bot. Users can place bets using their balance. User's balance, wagers, discord id, and past wagers are all stored in a DynamoDB database.
 
 What is special about this project?
-* Users are determined by their static discord UID so their account info is kept across any discord server
-* Makes use of the new discord components which are not officially released yet
-* Can place bets in real time and verify that the fights have not started/ended
+
+- Users are determined by their static discord UID so their account info is kept across any discord server
+- Makes use of the new discord components and ephemeral messaging
+- Can place bets in real time and verify that the fights have not started/ended
 
 I plan on continuing to build this project up. Currently the stack I am using is as follows.
 
-FrontEnd: Python
-* Discord
-* Discord Components
-* requests
-
-API: Node.js
-* Express
-* Puppetteer
-
-Backend: mySQL
+- TypeScript
+- DiscordJS
+- NestJS
+- Puppetteer
+- DynamoDB
 
 <p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-### Built With
-
-This section should list any major frameworks/libraries used to bootstrap your project. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
-
-* [Python](https://www.python.org/)
-* [mySQL](https://www.mysql.com/)
-* [Discord](https://discord.com/)
-* [My UFC API](https://github.com/erobin27/UFC-API/)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
 
 <!-- GETTING STARTED -->
+
 ## Getting Started
 
 To get started clone the repo to your local machine and begin installing it's dependencies. You will need to setup your discord token and database connection info in a `.env` file in the project directory.
 
 ### Prerequisites
 
-To run this app you will need to install python, pip, and mySQL server
+To run this app you will need to install nodejs, yarn, and nestjs
 
 ### Installation
 
@@ -131,31 +123,32 @@ To run this app you will need to install python, pip, and mySQL server
    ```sh
    git clone https://github.com/erobin27/BetBot.git
    ```
-2. Install python dependecies with pip (will add requirement file soon)
+2. Install python dependecies with yarn
    ```sh
-   pip install ...
+   yarn install
    ```
-3. run the python file BetBot.py whilst UFC-API and mySQL database are running
+3. run the API, Backend, and FrontEnd individually with
+   ```sh
+   yarn start:dev
+   ```
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-
-
 <!-- USAGE EXAMPLES -->
+
 ## Usage
 
 This is a way for people to make the UFC fights more engaging and fun without the harmful effects of gambling with real world money. I intend to make BetBot very interactive with leaderboards, xp ranks, etc. The betting process is not without risk since user balance is stored and after losing your money you would have to earn more but this definitely beats going broke in the real world from betting.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-
-
 <!-- ROADMAP -->
+
 ## Roadmap
 
 - [x] Allow users to place bets
 - [x] Check bets and award winners
-- [] list previous wagers and outcome
+- [x] list previous wagers and outcome
 - [] Add a way for users to earn money
 - [] Add a ranking/xp system
 - [] Add server leaderboards
@@ -164,9 +157,8 @@ See the [open issues](https://github.com/erobin27/BetBot/issues) for a full list
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-
-
 <!-- CONTRIBUTING -->
+
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
@@ -182,48 +174,44 @@ Don't forget to give the project a star! Thanks again!
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-
-
 <!-- LICENSE -->
+
 ## License
 
 You are not allowed to use this source code.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-
-
 <!-- CONTACT -->
+
 ## Contact
 
 Project Link: [https://github.com/erobin27/BetBot](https://github.com/erobin27/BetBot)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-
-
 <!-- ACKNOWLEDGMENTS -->
+
 ## Acknowledgments
 
 Credits
 
-* [ReadMe Template](https://github.com/othneildrew/Best-README-Template/blob/master/README.md)
+- [ReadMe Template](https://github.com/othneildrew/Best-README-Template/blob/master/README.md)
 <!--
-* [Choose an Open Source License](https://choosealicense.com)
-* [GitHub Emoji Cheat Sheet](https://www.webpagefx.com/tools/emoji-cheat-sheet)
-* [Malven's Flexbox Cheatsheet](https://flexbox.malven.co/)
-* [Malven's Grid Cheatsheet](https://grid.malven.co/)
-* [Img Shields](https://shields.io)
-* [GitHub Pages](https://pages.github.com)
-* [Font Awesome](https://fontawesome.com)
-* [React Icons](https://react-icons.github.io/react-icons/search)
- -->
+- [Choose an Open Source License](https://choosealicense.com)
+- [GitHub Emoji Cheat Sheet](https://www.webpagefx.com/tools/emoji-cheat-sheet)
+- [Malven's Flexbox Cheatsheet](https://flexbox.malven.co/)
+- [Malven's Grid Cheatsheet](https://grid.malven.co/)
+- [Img Shields](https://shields.io)
+- [GitHub Pages](https://pages.github.com)
+- [Font Awesome](https://fontawesome.com)
+- [React Icons](https://react-icons.github.io/react-icons/search)
+-->
 <p align="right">(<a href="#top">back to top</a>)</p>
-
-
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+
 [contributors-shield]: https://img.shields.io/github/contributors/erobin27/BetBot.svg?style=for-the-badge
 [contributors-url]: https://github.com/erobin27/BetBot/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/erobin27/BetBot.svg?style=for-the-badge
@@ -236,5 +224,7 @@ Credits
 [license-url]: https://github.com/erobin27/BetBot/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/in/elijah-robinson98/
-[product-screenshot]: images/Screenshot.png
-[product-screenshot2]: images/Screenshot2.png
+[product-screenshot]: images/slash.png
+[product-screenshot2]: images/FightList.png
+[product-screenshot3]: images/Bet.png
+[product-screenshot4]: images/History.png

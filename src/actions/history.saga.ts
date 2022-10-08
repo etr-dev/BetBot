@@ -1,6 +1,11 @@
-import { ActionRowBuilder, ButtonBuilder, EmbedBuilder, Emoji } from 'discord.js';
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  EmbedBuilder,
+  Emoji,
+} from 'discord.js';
 import { getUsersBets } from '@apis';
-import { numberToEmoji, spliceIntoChunks } from '@utils/functions';
+import { numberToEmoji, sleep, spliceIntoChunks } from '@utils/functions';
 import {
   embedWaitMessage,
   embedPlacedBet,
@@ -11,19 +16,10 @@ import {
   GetUsersBetsRequest,
 } from 'src/apis/backendApi/requests';
 
-export async function startHistorySaga(interaction) {
-  //------------------------------------------------
-  //              Temp Message - UFC Api
-  //------------------------------------------------
-  let tempMsg = await interaction.reply({
-    content: '',
-    embeds: [embedWaitMessage()],
-    ephemeral: true,
-  });
-
+async function viewBetHistory(interaction, choice: BetSelection) {
   const getUsersBetsRequest: GetUsersBetsRequest = {
     userId: interaction.user.id,
-    betSelection: BetSelection.ALL,
+    betSelection: choice,
     attachMatchInfo: true,
   };
   const { data } = await getUsersBets(getUsersBetsRequest);
@@ -39,7 +35,6 @@ export async function startHistorySaga(interaction) {
   let historyIsActive = true;
   const pages = spliceIntoChunks(historyEmbeds, 5);
   let selectedPage = 0;
-
   while (historyIsActive) {
     const back = selectedPage - 1;
     const next = selectedPage + 1;
@@ -126,4 +121,58 @@ export async function startHistorySaga(interaction) {
 
     selectedPage = Number(res.customId);
   }
+}
+
+export async function startHistorySaga(interaction) {
+  //------------------------------------------------
+  //              Temp Message - UFC Api
+  //------------------------------------------------
+  let tempMsg = await interaction.reply({
+    content: '',
+    embeds: [embedWaitMessage()],
+    ephemeral: true,
+  });
+
+  let historyButtons = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId(BetSelection.ALL)
+      .setStyle(2)
+      .setEmoji('⬅️')
+      .setLabel('ALL'),
+    new ButtonBuilder()
+      .setCustomId(BetSelection.INACTIVE)
+      .setStyle(2)
+      .setEmoji('⬅️')
+      .setLabel('INACTIVE'),
+    new ButtonBuilder()
+      .setCustomId(BetSelection.ACTIVE)
+      .setStyle(2)
+      .setEmoji('⬅️')
+      .setLabel('ACTIVE'),
+    new ButtonBuilder()
+      .setCustomId('Cancel')
+      .setStyle(2)
+      .setLabel('Cancel')
+      .setEmoji('🚫'),
+  );
+
+  const historySelectionMsg = await interaction.editReply({
+    content: 'Pick your poison.',
+    embeds: [],
+    components: [historyButtons],
+    ephemeral: true,
+    fetchReply: true
+  });
+  
+  const res = await getButtonInteraction(
+    historySelectionMsg,
+    interaction.user.id,
+    20000,
+  );
+
+  if (!res || res.customId == 'Cancel') {
+    return;
+  }
+
+  await viewBetHistory(interaction, res.customId);
 }

@@ -44,7 +44,6 @@ export function embedSelectedFighter(
 export function embedPlacedBet(match: IMatch, bet: IBet) {
   let color = null;
   let payoutField = bet.amountToPayout;
-  console.log(bet.outcome);
   switch (bet.outcome) {
     case 'WIN':
       color = Colors.Green;
