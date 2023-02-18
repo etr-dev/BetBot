@@ -70,7 +70,7 @@
 
 ## Preview
 
-Invite BetBot to your server! (BETA): <a href="https://discord.com/api/oauth2/authorize?client_id=895536293356924979&permissions=535260822592&scope=bot"><strong>INVITE</strong></a><br/>
+Invite BetBot to your server! (BETA): <a href="https://discord.com/api/oauth2/authorize?client_id=895536293356924979&permissions=534723816512&scope=bot"><strong>INVITE</strong></a><br/>
 
 #### View slash commands with /
 
